@@ -24,14 +24,22 @@ struct set_point_
   typedef set_point_<ContainerAllocator> Type;
 
   set_point_()
-    {
+    : value(0.0)
+    , time(0.0)  {
     }
   set_point_(const ContainerAllocator& _alloc)
-    {
+    : value(0.0)
+    , time(0.0)  {
   (void)_alloc;
     }
 
 
+
+   typedef float _value_type;
+  _value_type value;
+
+   typedef float _time_type;
+  _time_type time;
 
 
 
@@ -56,6 +64,20 @@ std::ostream& operator<<(std::ostream& s, const ::pid_control::set_point_<Contai
 {
 ros::message_operations::Printer< ::pid_control::set_point_<ContainerAllocator> >::stream(s, "", v);
 return s;
+}
+
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator==(const ::pid_control::set_point_<ContainerAllocator1> & lhs, const ::pid_control::set_point_<ContainerAllocator2> & rhs)
+{
+  return lhs.value == rhs.value &&
+    lhs.time == rhs.time;
+}
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator!=(const ::pid_control::set_point_<ContainerAllocator1> & lhs, const ::pid_control::set_point_<ContainerAllocator2> & rhs)
+{
+  return !(lhs == rhs);
 }
 
 
@@ -106,12 +128,12 @@ struct MD5Sum< ::pid_control::set_point_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "d41d8cd98f00b204e9800998ecf8427e";
+    return "01346652ed5c09b39a6e088152e53548";
   }
 
   static const char* value(const ::pid_control::set_point_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xd41d8cd98f00b204ULL;
-  static const uint64_t static_value2 = 0xe9800998ecf8427eULL;
+  static const uint64_t static_value1 = 0x01346652ed5c09b3ULL;
+  static const uint64_t static_value2 = 0x9a6e088152e53548ULL;
 };
 
 template<class ContainerAllocator>
@@ -130,7 +152,8 @@ struct Definition< ::pid_control::set_point_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "\n"
+    return "float32 value\n"
+"float32 time\n"
 ;
   }
 
@@ -147,8 +170,11 @@ namespace serialization
 
   template<class ContainerAllocator> struct Serializer< ::pid_control::set_point_<ContainerAllocator> >
   {
-    template<typename Stream, typename T> inline static void allInOne(Stream&, T)
-    {}
+    template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
+    {
+      stream.next(m.value);
+      stream.next(m.time);
+    }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
   }; // struct set_point_
@@ -164,8 +190,13 @@ namespace message_operations
 template<class ContainerAllocator>
 struct Printer< ::pid_control::set_point_<ContainerAllocator> >
 {
-  template<typename Stream> static void stream(Stream&, const std::string&, const ::pid_control::set_point_<ContainerAllocator>&)
-  {}
+  template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::pid_control::set_point_<ContainerAllocator>& v)
+  {
+    s << indent << "value: ";
+    Printer<float>::stream(s, indent + "  ", v.value);
+    s << indent << "time: ";
+    Printer<float>::stream(s, indent + "  ", v.time);
+  }
 };
 
 } // namespace message_operations

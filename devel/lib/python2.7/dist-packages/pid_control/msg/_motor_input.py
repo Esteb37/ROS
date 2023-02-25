@@ -12,7 +12,8 @@ class motor_input(genpy.Message):
   _type = "pid_control/motor_input"
   _has_header = False  # flag to mark the presence of a Header object
   _full_text = """float32 input
-float64 time"""
+float64 time
+"""
   __slots__ = ['input','time']
   _slot_types = ['float32','float64']
 

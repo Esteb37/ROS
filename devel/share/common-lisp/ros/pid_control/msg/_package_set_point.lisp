@@ -1,2 +1,6 @@
 (cl:in-package pid_control-msg)
-(cl:export '())
+(cl:export '(VALUE-VAL
+          VALUE
+          TIME-VAL
+          TIME
+))

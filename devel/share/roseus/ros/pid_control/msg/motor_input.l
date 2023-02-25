@@ -65,6 +65,7 @@
 (setf (get pid_control::motor_input :definition-)
       "float32 input
 float64 time
+
 ")
 
 

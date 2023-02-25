@@ -87,10 +87,10 @@
   "68938b46224a92992b7cd8fd6233cc91")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<motor_input>)))
   "Returns full string definition for message of type '<motor_input>"
-  (cl:format cl:nil "float32 input~%float64 time~%~%"))
+  (cl:format cl:nil "float32 input~%float64 time~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'motor_input)))
   "Returns full string definition for message of type 'motor_input"
-  (cl:format cl:nil "float32 input~%float64 time~%~%"))
+  (cl:format cl:nil "float32 input~%float64 time~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <motor_input>))
   (cl:+ 0
      4
