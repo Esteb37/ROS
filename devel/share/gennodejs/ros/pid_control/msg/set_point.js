@@ -76,7 +76,6 @@ class set_point {
     return `
     float32 value
     float32 time
-    
     `;
   }
 

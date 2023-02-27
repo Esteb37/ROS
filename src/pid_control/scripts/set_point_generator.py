@@ -6,6 +6,7 @@ from pid_control.msg import set_point
 
 # Setup Variables, parameters and messages to be used (if required)
 
+setpoint_amplitude = rospy.get_param("/setpoint_amplitude")
 
 #Stop Condition
 def stop():
@@ -22,11 +23,13 @@ if __name__=='__main__':
     time = rospy.get_time()
 
     print("The Set Point Genertor is Running")
-
+    t = 0
     #Run the node
     while not rospy.is_shutdown():
 
-        output = sin(rospy.get_time())*10
+        output = sin(t)*setpoint_amplitude
+        
+        t+=0.01
         
         pub.publish(output,rospy.get_time() - time)
 

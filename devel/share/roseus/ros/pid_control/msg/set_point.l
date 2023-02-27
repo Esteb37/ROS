@@ -65,7 +65,6 @@
 (setf (get pid_control::set_point :definition-)
       "float32 value
 float32 time
-
 ")
 
 

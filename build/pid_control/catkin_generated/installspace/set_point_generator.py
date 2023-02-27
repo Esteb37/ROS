@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 import rospy
 import numpy as np
+from math import sin
 from pid_control.msg import set_point
 
 # Setup Variables, parameters and messages to be used (if required)
@@ -14,18 +15,19 @@ def stop():
 
 if __name__=='__main__':
     #Initialise and Setup node
-    rospy.init_node("Set_Point_Generator")
+    rospy.init_node("setPoint")
     rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
-
-    #Setup Publishers and subscribers here
-
+    pub = rospy.Publisher("/set_point", set_point, queue_size=10)
+    time = rospy.get_time()
 
     print("The Set Point Genertor is Running")
 
     #Run the node
     while not rospy.is_shutdown():
 
-        #Write your code here
+        output = sin(rospy.get_time())*10
+        
+        pub.publish(output,rospy.get_time() - time)
 
         rate.sleep()

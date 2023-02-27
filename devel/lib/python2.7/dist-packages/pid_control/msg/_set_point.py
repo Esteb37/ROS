@@ -12,8 +12,7 @@ class set_point(genpy.Message):
   _type = "pid_control/set_point"
   _has_header = False  # flag to mark the presence of a Header object
   _full_text = """float32 value
-float32 time
-"""
+float32 time"""
   __slots__ = ['value','time']
   _slot_types = ['float32','float32']
 

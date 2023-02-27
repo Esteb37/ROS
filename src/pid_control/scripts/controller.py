@@ -11,10 +11,10 @@ m_motor_output = 0
 m_setpoint = 0
 m_time = 0
 
-kP = 0.06
-kI = 0.05
-kD = 0.0
-Ts = 0.1
+kP = rospy.get_param("/controller_kP")
+kI = rospy.get_param("/controller_kI")
+kD =rospy.get_param("/controller_kD")
+Ts =rospy.get_param("/controller_Ts")
 
 e = [0,0,0]
 u = [0,0]

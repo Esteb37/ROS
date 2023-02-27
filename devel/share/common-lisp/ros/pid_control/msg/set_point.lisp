@@ -79,10 +79,10 @@
   "01346652ed5c09b39a6e088152e53548")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<set_point>)))
   "Returns full string definition for message of type '<set_point>"
-  (cl:format cl:nil "float32 value~%float32 time~%~%~%"))
+  (cl:format cl:nil "float32 value~%float32 time~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'set_point)))
   "Returns full string definition for message of type 'set_point"
-  (cl:format cl:nil "float32 value~%float32 time~%~%~%"))
+  (cl:format cl:nil "float32 value~%float32 time~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <set_point>))
   (cl:+ 0
      4
