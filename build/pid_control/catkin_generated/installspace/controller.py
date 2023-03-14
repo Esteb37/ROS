@@ -13,8 +13,8 @@ m_time = 0
 
 kP = rospy.get_param("/controller_kP")
 kI = rospy.get_param("/controller_kI")
-kD =rospy.get_param("/controller_kD")
-Ts =rospy.get_param("/controller_Ts")
+kD = rospy.get_param("/controller_kD")
+Ts = rospy.get_param("/controller_Ts")
 
 e = [0,0,0]
 u = [0,0]

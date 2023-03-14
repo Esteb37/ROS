@@ -135,6 +135,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/estebanpadilla/catkin_ws/build/beginner_tutorials/cmake_install.cmake")
   include("/home/estebanpadilla/catkin_ws/build/courseworks_answer_w1/cmake_install.cmake")
   include("/home/estebanpadilla/catkin_ws/build/pid_control/cmake_install.cmake")
+  include("/home/estebanpadilla/catkin_ws/build/reto/cmake_install.cmake")
 
 endif()
 
