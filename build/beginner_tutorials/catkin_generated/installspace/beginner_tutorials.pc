@@ -1,4 +1,4 @@
-prefix=/home/estebanpadilla/catkin_ws/install
+prefix=/home/estebanp/catkin_ws/install
 
 Name: beginner_tutorials
 Description: Description of beginner_tutorials

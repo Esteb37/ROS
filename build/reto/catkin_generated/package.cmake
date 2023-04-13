@@ -1,6 +1,6 @@
 set(_CATKIN_CURRENT_PACKAGE "reto")
 set(reto_VERSION "0.0.0")
-set(reto_MAINTAINER "estebanpadilla <estebanpadilla@todo.todo>")
+set(reto_MAINTAINER "estebanp <estebanp@todo.todo>")
 set(reto_PACKAGE_FORMAT "2")
 set(reto_BUILD_DEPENDS "message_generation" "rospy" "std_msgs")
 set(reto_BUILD_EXPORT_DEPENDS "rospy" "std_msgs")

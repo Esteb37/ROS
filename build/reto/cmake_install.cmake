@@ -1,8 +1,8 @@
-# Install script for directory: /home/estebanpadilla/catkin_ws/src/reto
+# Install script for directory: /home/estebanp/catkin_ws/src/reto
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/estebanpadilla/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/estebanp/catkin_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,53 +38,53 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/msg" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/src/reto/msg/set_point.msg")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/msg" TYPE FILE FILES "/home/estebanp/catkin_ws/src/reto/msg/set_point.msg")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/cmake" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/build/reto/catkin_generated/installspace/reto-msg-paths.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/cmake" TYPE FILE FILES "/home/estebanp/catkin_ws/build/reto/catkin_generated/installspace/reto-msg-paths.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/estebanpadilla/catkin_ws/devel/include/reto")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/estebanp/catkin_ws/devel/include/reto")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/estebanpadilla/catkin_ws/devel/share/roseus/ros/reto")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/estebanp/catkin_ws/devel/share/roseus/ros/reto")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/estebanpadilla/catkin_ws/devel/share/common-lisp/ros/reto")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/estebanp/catkin_ws/devel/share/common-lisp/ros/reto")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/estebanpadilla/catkin_ws/devel/share/gennodejs/ros/reto")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/estebanp/catkin_ws/devel/share/gennodejs/ros/reto")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  execute_process(COMMAND "/usr/bin/python2" -m compileall "/home/estebanpadilla/catkin_ws/devel/lib/python2.7/dist-packages/reto")
+  execute_process(COMMAND "/usr/bin/python2" -m compileall "/home/estebanp/catkin_ws/devel/lib/python2.7/dist-packages/reto")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python2.7/dist-packages" TYPE DIRECTORY FILES "/home/estebanpadilla/catkin_ws/devel/lib/python2.7/dist-packages/reto")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python2.7/dist-packages" TYPE DIRECTORY FILES "/home/estebanp/catkin_ws/devel/lib/python2.7/dist-packages/reto")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/build/reto/catkin_generated/installspace/reto.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/estebanp/catkin_ws/build/reto/catkin_generated/installspace/reto.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/cmake" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/build/reto/catkin_generated/installspace/reto-msg-extras.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/cmake" TYPE FILE FILES "/home/estebanp/catkin_ws/build/reto/catkin_generated/installspace/reto-msg-extras.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto/cmake" TYPE FILE FILES
-    "/home/estebanpadilla/catkin_ws/build/reto/catkin_generated/installspace/retoConfig.cmake"
-    "/home/estebanpadilla/catkin_ws/build/reto/catkin_generated/installspace/retoConfig-version.cmake"
+    "/home/estebanp/catkin_ws/build/reto/catkin_generated/installspace/retoConfig.cmake"
+    "/home/estebanp/catkin_ws/build/reto/catkin_generated/installspace/retoConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/src/reto/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/reto" TYPE FILE FILES "/home/estebanp/catkin_ws/src/reto/package.xml")
 endif()
 

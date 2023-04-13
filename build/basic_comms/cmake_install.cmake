@@ -1,8 +1,8 @@
-# Install script for directory: /home/estebanpadilla/catkin_ws/src/basic_comms
+# Install script for directory: /home/estebanp/catkin_ws/src/basic_comms
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/estebanpadilla/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/estebanp/catkin_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,17 +38,17 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/build/basic_comms/catkin_generated/installspace/basic_comms.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/estebanp/catkin_ws/build/basic_comms/catkin_generated/installspace/basic_comms.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/basic_comms/cmake" TYPE FILE FILES
-    "/home/estebanpadilla/catkin_ws/build/basic_comms/catkin_generated/installspace/basic_commsConfig.cmake"
-    "/home/estebanpadilla/catkin_ws/build/basic_comms/catkin_generated/installspace/basic_commsConfig-version.cmake"
+    "/home/estebanp/catkin_ws/build/basic_comms/catkin_generated/installspace/basic_commsConfig.cmake"
+    "/home/estebanp/catkin_ws/build/basic_comms/catkin_generated/installspace/basic_commsConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/basic_comms" TYPE FILE FILES "/home/estebanpadilla/catkin_ws/src/basic_comms/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/basic_comms" TYPE FILE FILES "/home/estebanp/catkin_ws/src/basic_comms/package.xml")
 endif()
 

@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/reto_generate_messages_cpp"
-  "/home/estebanpadilla/catkin_ws/devel/include/reto/set_point.h"
+  "/home/estebanp/catkin_ws/devel/include/reto/set_point.h"
 )
 
 # Per-language clean rules from dependency scanning.

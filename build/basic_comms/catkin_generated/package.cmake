@@ -1,6 +1,6 @@
 set(_CATKIN_CURRENT_PACKAGE "basic_comms")
 set(basic_comms_VERSION "0.0.0")
-set(basic_comms_MAINTAINER "estebanpadilla <estebanpadilla@todo.todo>")
+set(basic_comms_MAINTAINER "estebanp <estebanp@todo.todo>")
 set(basic_comms_PACKAGE_FORMAT "2")
 set(basic_comms_BUILD_DEPENDS "rospy" "std_msgs")
 set(basic_comms_BUILD_EXPORT_DEPENDS "rospy" "std_msgs")

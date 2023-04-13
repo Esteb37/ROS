@@ -67,14 +67,14 @@ set(pid_control_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(pid_control_SOURCE_PREFIX /home/estebanpadilla/catkin_ws/src/pid_control)
-  set(pid_control_DEVEL_PREFIX /home/estebanpadilla/catkin_ws/devel)
+  set(pid_control_SOURCE_PREFIX /home/estebanp/catkin_ws/src/pid_control)
+  set(pid_control_DEVEL_PREFIX /home/estebanp/catkin_ws/devel)
   set(pid_control_INSTALL_PREFIX "")
   set(pid_control_PREFIX ${pid_control_DEVEL_PREFIX})
 else()
   set(pid_control_SOURCE_PREFIX "")
   set(pid_control_DEVEL_PREFIX "")
-  set(pid_control_INSTALL_PREFIX /home/estebanpadilla/catkin_ws/install)
+  set(pid_control_INSTALL_PREFIX /home/estebanp/catkin_ws/install)
   set(pid_control_PREFIX ${pid_control_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/estebanpadilla/catkin_ws/install/lib;/home/estebanpadilla/catkin_ws/devel/lib;/opt/ros/melodic/lib)
+    foreach(path /home/estebanp/catkin_ws/install/lib;/home/estebanp/catkin_ws/devel/lib;/opt/ros/melodic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
