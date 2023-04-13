@@ -7,6 +7,7 @@
 subdirs("gtest")
 subdirs("basic_comms")
 subdirs("beginner_tutorials")
+subdirs("challenge1")
 subdirs("courseworks_answer_w1")
 subdirs("pid_control")
 subdirs("reto")

@@ -934,6 +934,24 @@ clean: beginner_tutorials/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/cle
 .PHONY : clean
 
 #=============================================================================
+# Directory level rules for directory challenge1
+
+# Convenience name for "all" pass in the directory.
+challenge1/all:
+
+.PHONY : challenge1/all
+
+# Convenience name for "clean" pass in the directory.
+challenge1/clean:
+
+.PHONY : challenge1/clean
+
+# Convenience name for "preinstall" pass in the directory.
+challenge1/preinstall:
+
+.PHONY : challenge1/preinstall
+
+#=============================================================================
 # Directory level rules for directory courseworks_answer_w1
 
 # Convenience name for "all" pass in the directory.
