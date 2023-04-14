@@ -2,17 +2,12 @@
 
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
+from challenge1.msg import script_select
 import numpy as np
 import rospy
 
 
-class FollowPath():
-
-    MOVE_VELOCITY_MS = 0.4
-
-    TURN_VELOCITY_RS = 0.4
-
-    SQUARE = ((1.6, 0), (1.6, 1.2), (0, 1.2), (0, 0))
+class PathFollower():
 
     heading = 0
 
@@ -22,30 +17,28 @@ class FollowPath():
 
         self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
 
-        rospy.Subscriber("distance_topic", Float32, self.message_cb)
+        rospy.Subscriber("/script_select", script_select, self.message_cb)
 
-        self.rate = rospy.Rate(20)
+        self.rate = rospy.Rate(50)
 
         print("Running...")
 
-        is_finished = False
+        self.is_finished = True  # Until message received
 
         while not rospy.is_shutdown():
 
-            path = self.SQUARE
-
-            self.follow_path(path)
+            if not self.is_finished:
+                self.is_finished = self.follow_path(self.PATH)
 
     def follow_path(self, path):
 
-        print("Following...\n")
-
         commands = self.generate_commands(path)
 
-        print(commands)
-        print()
-
         for command in commands:
+
+            if rospy.is_shutdown():
+                return False
+
             func, arg = command
 
             if func == "turn":
@@ -53,6 +46,8 @@ class FollowPath():
 
             elif func == "distance":
                 self.move_cmd(arg)
+
+        print("Finished!")
 
         return True
 
@@ -78,7 +73,7 @@ class FollowPath():
             elif turn < -np.pi:
                 turn += 2 * np.pi
 
-            distance = np.sqrt((x)**2 + (x)**2)
+            distance = np.sqrt((x)**2 + (y)**2)
 
             prev_x, prev_y = target_x, target_y
 
@@ -152,21 +147,50 @@ class FollowPath():
 
     def message_cb(self, msg):
 
-        self.target_distance = msg.data
+        script_select = msg.script_select
+        type_select = msg.type_select
+        value = msg.vel_or_time
 
-        self.init_time = rospy.get_time()
+        segments = 0
 
-        print("I received this message in the callback: " +
-              str(self.target_distance))
+        if script_select == "SQUARE":
+            length = msg.square_length
+
+            self.PATH = ((length, 0), (length, length),
+                         (0, length), (0, 0))
+
+            segments = 4
+
+            print(("Following a square of length " + str(length) + "m ") +
+                  ("with a velocity of " + str(value) + " m/s" if type_select == "VELOCITY" else "in " + str(value) + " seconds"))
+
+        elif script_select == "PATH":
+
+            self.PATH = rospy.get_param("path")
+
+            segments = len(self.PATH)
+
+            print(("Following path ") +
+                  ("with a velocity of " + str(value) + " m/s" if type_select == "VELOCITY" else "in " + str(value) + " seconds"))
+
+        if type_select == "VELOCITY":
+            self.MOVE_VELOCITY_MS = value
+            self.TURN_VELOCITY_RS = value
+
+        elif type_select == "TIME":
+            self.MOVE_VELOCITY_MS = value/(segments*2)
+            self.TURN_VELOCITY_RS = value/(segments*2)
+
+        self.is_finished = False
 
     def cleanup(self):
         zero_vel = Twist()
         self.cmd_vel_pub.publish(zero_vel)
-        print("I'm dying, bye bye!!!")
+        print("My battery is low, and it's getting dark.")
 
 
 ############################### MAIN PROGRAM ####################################
 if __name__ == "__main__":
 
-    rospy.init_node("simple_move", anonymous=True)
-    FollowPath()
+    rospy.init_node("path_follower", anonymous=True)
+    PathFollower()

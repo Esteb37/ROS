@@ -1,0 +1,4 @@
+string script_select
+string type_select
+float32 vel_or_time
+float32 square_length

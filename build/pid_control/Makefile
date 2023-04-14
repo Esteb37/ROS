@@ -89,17 +89,6 @@ rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target install/strip
 install/strip: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
@@ -134,6 +123,17 @@ test:
 test/fast: test
 
 .PHONY : test/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -181,21 +181,6 @@ _pid_control_generate_messages_check_deps_motor_input: pid_control/CMakeFiles/_p
 _pid_control_generate_messages_check_deps_motor_input/fast:
 	cd /home/estebanp/catkin_ws/build && $(MAKE) -f pid_control/CMakeFiles/_pid_control_generate_messages_check_deps_motor_input.dir/build.make pid_control/CMakeFiles/_pid_control_generate_messages_check_deps_motor_input.dir/build
 .PHONY : _pid_control_generate_messages_check_deps_motor_input/fast
-
-# Convenience name for target.
-pid_control/CMakeFiles/_catkin_empty_exported_target.dir/rule:
-	cd /home/estebanp/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 pid_control/CMakeFiles/_catkin_empty_exported_target.dir/rule
-.PHONY : pid_control/CMakeFiles/_catkin_empty_exported_target.dir/rule
-
-# Convenience name for target.
-_catkin_empty_exported_target: pid_control/CMakeFiles/_catkin_empty_exported_target.dir/rule
-
-.PHONY : _catkin_empty_exported_target
-
-# fast build rule for target.
-_catkin_empty_exported_target/fast:
-	cd /home/estebanp/catkin_ws/build && $(MAKE) -f pid_control/CMakeFiles/_catkin_empty_exported_target.dir/build.make pid_control/CMakeFiles/_catkin_empty_exported_target.dir/build
-.PHONY : _catkin_empty_exported_target/fast
 
 # Convenience name for target.
 pid_control/CMakeFiles/pid_control_generate_messages_cpp.dir/rule:
@@ -401,9 +386,7 @@ help:
 	@echo "... install/local"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
 	@echo "... _pid_control_generate_messages_check_deps_motor_input"
-	@echo "... _catkin_empty_exported_target"
 	@echo "... pid_control_generate_messages_cpp"
 	@echo "... _pid_control_generate_messages_check_deps_motor_output"
 	@echo "... install/strip"
@@ -420,6 +403,7 @@ help:
 	@echo "... pid_control_genpy"
 	@echo "... _pid_control_generate_messages_check_deps_set_point"
 	@echo "... test"
+	@echo "... edit_cache"
 .PHONY : help
 
 
