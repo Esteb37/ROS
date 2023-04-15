@@ -1,4 +1,6 @@
 string script_select
 string type_select
-float32 vel_or_time
+float32 turn_velocity
+float32 move_velocity
+float32 total_time
 float32 square_length

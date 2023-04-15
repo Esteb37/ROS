@@ -3,8 +3,12 @@
           SCRIPT_SELECT
           TYPE_SELECT-VAL
           TYPE_SELECT
-          VEL_OR_TIME-VAL
-          VEL_OR_TIME
+          TURN_VELOCITY-VAL
+          TURN_VELOCITY
+          MOVE_VELOCITY-VAL
+          MOVE_VELOCITY
+          TOTAL_TIME-VAL
+          TOTAL_TIME
           SQUARE_LENGTH-VAL
           SQUARE_LENGTH
 ))

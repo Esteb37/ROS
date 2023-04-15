@@ -17,9 +17,19 @@
     :initarg :type_select
     :type cl:string
     :initform "")
-   (vel_or_time
-    :reader vel_or_time
-    :initarg :vel_or_time
+   (turn_velocity
+    :reader turn_velocity
+    :initarg :turn_velocity
+    :type cl:float
+    :initform 0.0)
+   (move_velocity
+    :reader move_velocity
+    :initarg :move_velocity
+    :type cl:float
+    :initform 0.0)
+   (total_time
+    :reader total_time
+    :initarg :total_time
     :type cl:float
     :initform 0.0)
    (square_length
@@ -47,10 +57,20 @@
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader challenge1-msg:type_select-val is deprecated.  Use challenge1-msg:type_select instead.")
   (type_select m))
 
-(cl:ensure-generic-function 'vel_or_time-val :lambda-list '(m))
-(cl:defmethod vel_or_time-val ((m <script_select>))
-  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader challenge1-msg:vel_or_time-val is deprecated.  Use challenge1-msg:vel_or_time instead.")
-  (vel_or_time m))
+(cl:ensure-generic-function 'turn_velocity-val :lambda-list '(m))
+(cl:defmethod turn_velocity-val ((m <script_select>))
+  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader challenge1-msg:turn_velocity-val is deprecated.  Use challenge1-msg:turn_velocity instead.")
+  (turn_velocity m))
+
+(cl:ensure-generic-function 'move_velocity-val :lambda-list '(m))
+(cl:defmethod move_velocity-val ((m <script_select>))
+  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader challenge1-msg:move_velocity-val is deprecated.  Use challenge1-msg:move_velocity instead.")
+  (move_velocity m))
+
+(cl:ensure-generic-function 'total_time-val :lambda-list '(m))
+(cl:defmethod total_time-val ((m <script_select>))
+  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader challenge1-msg:total_time-val is deprecated.  Use challenge1-msg:total_time instead.")
+  (total_time m))
 
 (cl:ensure-generic-function 'square_length-val :lambda-list '(m))
 (cl:defmethod square_length-val ((m <script_select>))
@@ -70,7 +90,17 @@
     (cl:write-byte (cl:ldb (cl:byte 8 16) __ros_str_len) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 24) __ros_str_len) ostream))
   (cl:map cl:nil #'(cl:lambda (c) (cl:write-byte (cl:char-code c) ostream)) (cl:slot-value msg 'type_select))
-  (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'vel_or_time))))
+  (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'turn_velocity))))
+    (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 24) bits) ostream))
+  (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'move_velocity))))
+    (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 24) bits) ostream))
+  (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'total_time))))
     (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
@@ -104,7 +134,19 @@
       (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
-    (cl:setf (cl:slot-value msg 'vel_or_time) (roslisp-utils:decode-single-float-bits bits)))
+    (cl:setf (cl:slot-value msg 'turn_velocity) (roslisp-utils:decode-single-float-bits bits)))
+    (cl:let ((bits 0))
+      (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
+    (cl:setf (cl:slot-value msg 'move_velocity) (roslisp-utils:decode-single-float-bits bits)))
+    (cl:let ((bits 0))
+      (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
+    (cl:setf (cl:slot-value msg 'total_time) (roslisp-utils:decode-single-float-bits bits)))
     (cl:let ((bits 0))
       (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
@@ -121,20 +163,22 @@
   "challenge1/script_select")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<script_select>)))
   "Returns md5sum for a message object of type '<script_select>"
-  "018261c4027250dddc46523e31e3866b")
+  "dde5cb34cae0c7a4f86426afcd558fdc")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'script_select)))
   "Returns md5sum for a message object of type 'script_select"
-  "018261c4027250dddc46523e31e3866b")
+  "dde5cb34cae0c7a4f86426afcd558fdc")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<script_select>)))
   "Returns full string definition for message of type '<script_select>"
-  (cl:format cl:nil "string script_select~%string type_select~%float32 vel_or_time~%float32 square_length~%~%"))
+  (cl:format cl:nil "string script_select~%string type_select~%float32 turn_velocity~%float32 move_velocity~%float32 total_time~%float32 square_length~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'script_select)))
   "Returns full string definition for message of type 'script_select"
-  (cl:format cl:nil "string script_select~%string type_select~%float32 vel_or_time~%float32 square_length~%~%"))
+  (cl:format cl:nil "string script_select~%string type_select~%float32 turn_velocity~%float32 move_velocity~%float32 total_time~%float32 square_length~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <script_select>))
   (cl:+ 0
      4 (cl:length (cl:slot-value msg 'script_select))
      4 (cl:length (cl:slot-value msg 'type_select))
+     4
+     4
      4
      4
 ))
@@ -143,6 +187,8 @@
   (cl:list 'script_select
     (cl:cons ':script_select (script_select msg))
     (cl:cons ':type_select (type_select msg))
-    (cl:cons ':vel_or_time (vel_or_time msg))
+    (cl:cons ':turn_velocity (turn_velocity msg))
+    (cl:cons ':move_velocity (move_velocity msg))
+    (cl:cons ':total_time (total_time msg))
     (cl:cons ':square_length (square_length msg))
 ))

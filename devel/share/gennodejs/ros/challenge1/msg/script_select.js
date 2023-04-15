@@ -20,7 +20,9 @@ class script_select {
       // initObj === null is a special case for deserialization where we don't initialize fields
       this.script_select = null;
       this.type_select = null;
-      this.vel_or_time = null;
+      this.turn_velocity = null;
+      this.move_velocity = null;
+      this.total_time = null;
       this.square_length = null;
     }
     else {
@@ -36,11 +38,23 @@ class script_select {
       else {
         this.type_select = '';
       }
-      if (initObj.hasOwnProperty('vel_or_time')) {
-        this.vel_or_time = initObj.vel_or_time
+      if (initObj.hasOwnProperty('turn_velocity')) {
+        this.turn_velocity = initObj.turn_velocity
       }
       else {
-        this.vel_or_time = 0.0;
+        this.turn_velocity = 0.0;
+      }
+      if (initObj.hasOwnProperty('move_velocity')) {
+        this.move_velocity = initObj.move_velocity
+      }
+      else {
+        this.move_velocity = 0.0;
+      }
+      if (initObj.hasOwnProperty('total_time')) {
+        this.total_time = initObj.total_time
+      }
+      else {
+        this.total_time = 0.0;
       }
       if (initObj.hasOwnProperty('square_length')) {
         this.square_length = initObj.square_length
@@ -57,8 +71,12 @@ class script_select {
     bufferOffset = _serializer.string(obj.script_select, buffer, bufferOffset);
     // Serialize message field [type_select]
     bufferOffset = _serializer.string(obj.type_select, buffer, bufferOffset);
-    // Serialize message field [vel_or_time]
-    bufferOffset = _serializer.float32(obj.vel_or_time, buffer, bufferOffset);
+    // Serialize message field [turn_velocity]
+    bufferOffset = _serializer.float32(obj.turn_velocity, buffer, bufferOffset);
+    // Serialize message field [move_velocity]
+    bufferOffset = _serializer.float32(obj.move_velocity, buffer, bufferOffset);
+    // Serialize message field [total_time]
+    bufferOffset = _serializer.float32(obj.total_time, buffer, bufferOffset);
     // Serialize message field [square_length]
     bufferOffset = _serializer.float32(obj.square_length, buffer, bufferOffset);
     return bufferOffset;
@@ -72,8 +90,12 @@ class script_select {
     data.script_select = _deserializer.string(buffer, bufferOffset);
     // Deserialize message field [type_select]
     data.type_select = _deserializer.string(buffer, bufferOffset);
-    // Deserialize message field [vel_or_time]
-    data.vel_or_time = _deserializer.float32(buffer, bufferOffset);
+    // Deserialize message field [turn_velocity]
+    data.turn_velocity = _deserializer.float32(buffer, bufferOffset);
+    // Deserialize message field [move_velocity]
+    data.move_velocity = _deserializer.float32(buffer, bufferOffset);
+    // Deserialize message field [total_time]
+    data.total_time = _deserializer.float32(buffer, bufferOffset);
     // Deserialize message field [square_length]
     data.square_length = _deserializer.float32(buffer, bufferOffset);
     return data;
@@ -83,7 +105,7 @@ class script_select {
     let length = 0;
     length += object.script_select.length;
     length += object.type_select.length;
-    return length + 16;
+    return length + 24;
   }
 
   static datatype() {
@@ -93,7 +115,7 @@ class script_select {
 
   static md5sum() {
     //Returns md5sum for a message object
-    return '018261c4027250dddc46523e31e3866b';
+    return 'dde5cb34cae0c7a4f86426afcd558fdc';
   }
 
   static messageDefinition() {
@@ -101,8 +123,11 @@ class script_select {
     return `
     string script_select
     string type_select
-    float32 vel_or_time
+    float32 turn_velocity
+    float32 move_velocity
+    float32 total_time
     float32 square_length
+    
     `;
   }
 
@@ -126,11 +151,25 @@ class script_select {
       resolved.type_select = ''
     }
 
-    if (msg.vel_or_time !== undefined) {
-      resolved.vel_or_time = msg.vel_or_time;
+    if (msg.turn_velocity !== undefined) {
+      resolved.turn_velocity = msg.turn_velocity;
     }
     else {
-      resolved.vel_or_time = 0.0
+      resolved.turn_velocity = 0.0
+    }
+
+    if (msg.move_velocity !== undefined) {
+      resolved.move_velocity = msg.move_velocity;
+    }
+    else {
+      resolved.move_velocity = 0.0
+    }
+
+    if (msg.total_time !== undefined) {
+      resolved.total_time = msg.total_time;
+    }
+    else {
+      resolved.total_time = 0.0
     }
 
     if (msg.square_length !== undefined) {

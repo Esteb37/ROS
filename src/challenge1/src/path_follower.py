@@ -9,7 +9,7 @@ import rospy
 
 class PathFollower():
 
-    heading = 0
+    MOVE_TURN_RATIO = 0.7
 
     def __init__(self):
 
@@ -34,6 +34,8 @@ class PathFollower():
 
         commands = self.generate_commands(path)
 
+        timer_start = rospy.get_time()
+
         for command in commands:
 
             if rospy.is_shutdown():
@@ -47,7 +49,7 @@ class PathFollower():
             elif func == "distance":
                 self.move_cmd(arg)
 
-        print("Finished!")
+        print("Finished in " + str(rospy.get_time() - timer_start) + " seconds")
 
         return True
 
@@ -60,6 +62,7 @@ class PathFollower():
         heading = 0
 
         for coordinate in path:
+
             target_x, target_y = coordinate
 
             x, y = target_x - prev_x, target_y - prev_y
@@ -84,17 +87,10 @@ class PathFollower():
 
         return commands
 
-    def move_robot(self, velocity):
+    def publish_vel(self, linear, angular):
         vel = Twist()
-        vel.linear.x = velocity
-        vel.angular.z = 0.0
-        self.cmd_vel_pub.publish(vel)
-        self.rate.sleep()
-
-    def turn_robot(self, velocity):
-        vel = Twist()
-        vel.linear.x = 0.0
-        vel.angular.z = velocity
+        vel.linear.x = linear
+        vel.angular.z = angular
         self.cmd_vel_pub.publish(vel)
         self.rate.sleep()
 
@@ -117,9 +113,9 @@ class PathFollower():
             current_distance = (
                 rospy.get_time() - init_time) * velocity
 
-            self.move_robot(velocity)
+            self.publish_vel(velocity, 0)
 
-        self.move_robot(0.0)
+        self.publish_vel(0, 0)
 
     def turn_cmd(self, angle):
 
@@ -141,45 +137,62 @@ class PathFollower():
             current_angle = (
                 rospy.get_time() - init_time) * velocity
 
-            self.turn_robot(velocity)
+            self.publish_vel(0, velocity)
 
-        self.turn_robot(0.0)
+        self.publish_vel(0, velocity)
 
     def message_cb(self, msg):
 
         script_select = msg.script_select
         type_select = msg.type_select
-        value = msg.vel_or_time
-
-        segments = 0
 
         if script_select == "SQUARE":
+
             length = msg.square_length
 
             self.PATH = ((length, 0), (length, length),
                          (0, length), (0, 0))
 
-            segments = 4
-
-            print(("Following a square of length " + str(length) + "m ") +
-                  ("with a velocity of " + str(value) + " m/s" if type_select == "VELOCITY" else "in " + str(value) + " seconds"))
+            print("Following a square of length " + str(length) + "m")
 
         elif script_select == "PATH":
 
-            self.PATH = rospy.get_param("path")
+            self.PATH = rospy.get_param("path", [])
 
-            segments = len(self.PATH)
+            print("Following path")
 
-            print(("Following path ") +
-                  ("with a velocity of " + str(value) + " m/s" if type_select == "VELOCITY" else "in " + str(value) + " seconds"))
+        commands = self.generate_commands(self.PATH)
+
+        total_time = 0
+        total_rotation = 0
+        total_distance = 0
+        for command in commands:
+            func, arg = command
+
+            if func == "turn":
+                total_rotation += abs(arg)
+            elif func == "distance":
+                total_distance += abs(arg)
 
         if type_select == "VELOCITY":
-            self.MOVE_VELOCITY_MS = value
-            self.TURN_VELOCITY_RS = value
+            self.MOVE_VELOCITY_MS = msg.move_velocity
+            self.TURN_VELOCITY_RS = msg.turn_velocity
+
+            total_time = (total_distance / self.MOVE_VELOCITY_MS) + (
+                total_rotation / self.TURN_VELOCITY_RS)
 
         elif type_select == "TIME":
-            self.MOVE_VELOCITY_MS = value/(segments*2)
-            self.TURN_VELOCITY_RS = value/(segments*2)
+            total_time = msg.total_time
+
+            self.MOVE_VELOCITY_MS = total_distance / \
+                (total_time * self.MOVE_TURN_RATIO)
+
+            self.TURN_VELOCITY_RS = total_rotation / \
+                (total_time * (1-self.MOVE_TURN_RATIO))
+
+        print("Move velocity: " + str(self.MOVE_VELOCITY_MS) + "m/s")
+        print("Turn velocity: " + str(self.TURN_VELOCITY_RS) + "rad/s")
+        print("Total time: " + str(total_time) + "s")
 
         self.is_finished = False
 

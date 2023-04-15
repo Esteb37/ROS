@@ -45,12 +45,19 @@ if __name__ == '__main__':
         elif type_select == 2:
             type_select = "TIME"
 
-        vel_or_time = float(input("Enter {} value: ".format(
-            "time" if type_select == "TIME" else "velocity")))
+        total_time = input(
+            "Enter total time in seconds: ") if type_select == "TIME" else 0
+
+        turn_velocity = input(
+            "Enter turn velocity in m/s: ") if type_select == "VELOCITY" else 0
+
+        move_velocity = input(
+            "Enter move velocity in m/s: ") if type_select == "VELOCITY" else 0
 
         square_length = input(
             "Enter square length in meters: ") if script_select == "SQUARE" else 0
 
-        pub.publish(script_select, type_select, vel_or_time, square_length)
+        pub.publish(script_select, type_select, turn_velocity,
+                    move_velocity, total_time, square_length)
 
         rate.sleep()

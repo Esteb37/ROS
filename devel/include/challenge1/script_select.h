@@ -26,13 +26,17 @@ struct script_select_
   script_select_()
     : script_select()
     , type_select()
-    , vel_or_time(0.0)
+    , turn_velocity(0.0)
+    , move_velocity(0.0)
+    , total_time(0.0)
     , square_length(0.0)  {
     }
   script_select_(const ContainerAllocator& _alloc)
     : script_select(_alloc)
     , type_select(_alloc)
-    , vel_or_time(0.0)
+    , turn_velocity(0.0)
+    , move_velocity(0.0)
+    , total_time(0.0)
     , square_length(0.0)  {
   (void)_alloc;
     }
@@ -45,8 +49,14 @@ struct script_select_
    typedef std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>> _type_select_type;
   _type_select_type type_select;
 
-   typedef float _vel_or_time_type;
-  _vel_or_time_type vel_or_time;
+   typedef float _turn_velocity_type;
+  _turn_velocity_type turn_velocity;
+
+   typedef float _move_velocity_type;
+  _move_velocity_type move_velocity;
+
+   typedef float _total_time_type;
+  _total_time_type total_time;
 
    typedef float _square_length_type;
   _square_length_type square_length;
@@ -82,7 +92,9 @@ bool operator==(const ::challenge1::script_select_<ContainerAllocator1> & lhs, c
 {
   return lhs.script_select == rhs.script_select &&
     lhs.type_select == rhs.type_select &&
-    lhs.vel_or_time == rhs.vel_or_time &&
+    lhs.turn_velocity == rhs.turn_velocity &&
+    lhs.move_velocity == rhs.move_velocity &&
+    lhs.total_time == rhs.total_time &&
     lhs.square_length == rhs.square_length;
 }
 
@@ -140,12 +152,12 @@ struct MD5Sum< ::challenge1::script_select_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "018261c4027250dddc46523e31e3866b";
+    return "dde5cb34cae0c7a4f86426afcd558fdc";
   }
 
   static const char* value(const ::challenge1::script_select_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x018261c4027250ddULL;
-  static const uint64_t static_value2 = 0xdc46523e31e3866bULL;
+  static const uint64_t static_value1 = 0xdde5cb34cae0c7a4ULL;
+  static const uint64_t static_value2 = 0xf86426afcd558fdcULL;
 };
 
 template<class ContainerAllocator>
@@ -166,7 +178,9 @@ struct Definition< ::challenge1::script_select_<ContainerAllocator> >
   {
     return "string script_select\n"
 "string type_select\n"
-"float32 vel_or_time\n"
+"float32 turn_velocity\n"
+"float32 move_velocity\n"
+"float32 total_time\n"
 "float32 square_length\n"
 ;
   }
@@ -188,7 +202,9 @@ namespace serialization
     {
       stream.next(m.script_select);
       stream.next(m.type_select);
-      stream.next(m.vel_or_time);
+      stream.next(m.turn_velocity);
+      stream.next(m.move_velocity);
+      stream.next(m.total_time);
       stream.next(m.square_length);
     }
 
@@ -212,8 +228,12 @@ struct Printer< ::challenge1::script_select_<ContainerAllocator> >
     Printer<std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>>>::stream(s, indent + "  ", v.script_select);
     s << indent << "type_select: ";
     Printer<std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>>>::stream(s, indent + "  ", v.type_select);
-    s << indent << "vel_or_time: ";
-    Printer<float>::stream(s, indent + "  ", v.vel_or_time);
+    s << indent << "turn_velocity: ";
+    Printer<float>::stream(s, indent + "  ", v.turn_velocity);
+    s << indent << "move_velocity: ";
+    Printer<float>::stream(s, indent + "  ", v.move_velocity);
+    s << indent << "total_time: ";
+    Printer<float>::stream(s, indent + "  ", v.total_time);
     s << indent << "square_length: ";
     Printer<float>::stream(s, indent + "  ", v.square_length);
   }

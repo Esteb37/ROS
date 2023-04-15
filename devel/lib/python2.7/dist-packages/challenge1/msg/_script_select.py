@@ -8,15 +8,18 @@ import struct
 
 
 class script_select(genpy.Message):
-  _md5sum = "018261c4027250dddc46523e31e3866b"
+  _md5sum = "dde5cb34cae0c7a4f86426afcd558fdc"
   _type = "challenge1/script_select"
   _has_header = False  # flag to mark the presence of a Header object
   _full_text = """string script_select
 string type_select
-float32 vel_or_time
-float32 square_length"""
-  __slots__ = ['script_select','type_select','vel_or_time','square_length']
-  _slot_types = ['string','string','float32','float32']
+float32 turn_velocity
+float32 move_velocity
+float32 total_time
+float32 square_length
+"""
+  __slots__ = ['script_select','type_select','turn_velocity','move_velocity','total_time','square_length']
+  _slot_types = ['string','string','float32','float32','float32','float32']
 
   def __init__(self, *args, **kwds):
     """
@@ -26,7 +29,7 @@ float32 square_length"""
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       script_select,type_select,vel_or_time,square_length
+       script_select,type_select,turn_velocity,move_velocity,total_time,square_length
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -39,14 +42,20 @@ float32 square_length"""
         self.script_select = ''
       if self.type_select is None:
         self.type_select = ''
-      if self.vel_or_time is None:
-        self.vel_or_time = 0.
+      if self.turn_velocity is None:
+        self.turn_velocity = 0.
+      if self.move_velocity is None:
+        self.move_velocity = 0.
+      if self.total_time is None:
+        self.total_time = 0.
       if self.square_length is None:
         self.square_length = 0.
     else:
       self.script_select = ''
       self.type_select = ''
-      self.vel_or_time = 0.
+      self.turn_velocity = 0.
+      self.move_velocity = 0.
+      self.total_time = 0.
       self.square_length = 0.
 
   def _get_types(self):
@@ -74,7 +83,7 @@ float32 square_length"""
         length = len(_x)
       buff.write(struct.Struct('<I%ss'%length).pack(length, _x))
       _x = self
-      buff.write(_get_struct_2f().pack(_x.vel_or_time, _x.square_length))
+      buff.write(_get_struct_4f().pack(_x.turn_velocity, _x.move_velocity, _x.total_time, _x.square_length))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -107,8 +116,8 @@ float32 square_length"""
         self.type_select = str[start:end]
       _x = self
       start = end
-      end += 8
-      (_x.vel_or_time, _x.square_length,) = _get_struct_2f().unpack(str[start:end])
+      end += 16
+      (_x.turn_velocity, _x.move_velocity, _x.total_time, _x.square_length,) = _get_struct_4f().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -134,7 +143,7 @@ float32 square_length"""
         length = len(_x)
       buff.write(struct.Struct('<I%ss'%length).pack(length, _x))
       _x = self
-      buff.write(_get_struct_2f().pack(_x.vel_or_time, _x.square_length))
+      buff.write(_get_struct_4f().pack(_x.turn_velocity, _x.move_velocity, _x.total_time, _x.square_length))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -168,8 +177,8 @@ float32 square_length"""
         self.type_select = str[start:end]
       _x = self
       start = end
-      end += 8
-      (_x.vel_or_time, _x.square_length,) = _get_struct_2f().unpack(str[start:end])
+      end += 16
+      (_x.turn_velocity, _x.move_velocity, _x.total_time, _x.square_length,) = _get_struct_4f().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -178,9 +187,9 @@ _struct_I = genpy.struct_I
 def _get_struct_I():
     global _struct_I
     return _struct_I
-_struct_2f = None
-def _get_struct_2f():
-    global _struct_2f
-    if _struct_2f is None:
-        _struct_2f = struct.Struct("<2f")
-    return _struct_2f
+_struct_4f = None
+def _get_struct_4f():
+    global _struct_4f
+    if _struct_4f is None:
+        _struct_4f = struct.Struct("<4f")
+    return _struct_4f
