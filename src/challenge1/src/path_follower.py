@@ -12,6 +12,9 @@ class PathFollower():
     # Defines what percentage of the total time will be designated to moving, as opposed to turning. 0.7 means 70% of the time will be for moving and 30% for turning. A larger number means faster turns and slower movements, and viceversa.
     MOVE_TURN_RATIO = 0.7
 
+    MAX_MOVE_VELOCITY_MS = 0.72
+    MAX_TURN_VELOCITY_RS = 7.5
+
     def __init__(self):
 
         # Setup ROS node
@@ -226,6 +229,15 @@ class PathFollower():
             total_time = (total_distance / self.MOVE_VELOCITY_MS) + (
                 total_rotation / self.TURN_VELOCITY_RS)
 
+            if self.MAX_MOVE_VELOCITY_MS < self.MOVE_VELOCITY_MS:
+                self.MOVE_VELOCITY_MS = self.MAX_MOVE_VELOCITY_MS
+                print("Move velocity exceeded maximum value. Setting to " +
+                      str(self.MOVE_VELOCITY_MS) + "m/s")
+            if self.MAX_TURN_VELOCITY_RS < self.TURN_VELOCITY_RS:
+                self.TURN_VELOCITY_RS = self.MAX_TURN_VELOCITY_RS
+                print("Turn velocity exceeded maximum value. Setting to " +
+                      str(self.TURN_VELOCITY_RS) + "rad/s")
+
         elif type_select == "TIME":
             total_time = msg.total_time
 
@@ -235,6 +247,16 @@ class PathFollower():
 
             self.TURN_VELOCITY_RS = total_rotation / \
                 (total_time * (1-self.MOVE_TURN_RATIO))
+
+            if self.MAX_MOVE_VELOCITY_MS < self.MOVE_VELOCITY_MS:
+                print("Move velocity has value of " + str(self.MOVE_VELOCITY_MS) + "m/s, which exceeds maximum value of " +
+                      str(self.MAX_MOVE_VELOCITY_MS) + "m/s. Time is impossible to reach.")
+                return
+
+            if self.MAX_TURN_VELOCITY_RS < self.TURN_VELOCITY_RS:
+                print("Turn velocity has value of " + str(self.TURN_VELOCITY_RS) + "rad/s, which exceeds maximum value of " +
+                      str(self.MAX_TURN_VELOCITY_RS) + "rad/s. Time is impossible to reach.")
+                return
 
         print("Move velocity: " + str(self.MOVE_VELOCITY_MS) + "m/s")
         print("Turn velocity: " + str(self.TURN_VELOCITY_RS) + "rad/s")
