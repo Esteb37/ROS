@@ -1,2 +1,0 @@
-basic_comms:beginner_tutorials:courseworks_answer_w1:open_path_follower:pid_control:reto
--DCATKIN_DEVEL_PREFIX=/home/estebanp/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/estebanp/catkin_ws/install -G Unix Makefiles

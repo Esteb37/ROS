@@ -1,8 +1,0 @@
-prefix=/home/estebanp/catkin_ws/install
-
-Name: reto
-Description: Description of reto
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: rospy message_runtime
