@@ -300,12 +300,6 @@ beginner_tutorials_SOURCE_DIR:STATIC=/home/estebanp/catkin_ws/src/beginner_tutor
 catkin_DIR:PATH=/opt/ros/melodic/share/catkin/cmake
 
 //Value Computed by CMake
-challenge1_BINARY_DIR:STATIC=/home/estebanp/catkin_ws/build/challenge1
-
-//Value Computed by CMake
-challenge1_SOURCE_DIR:STATIC=/home/estebanp/catkin_ws/src/challenge1
-
-//Value Computed by CMake
 courseworks_answer_w1_BINARY_DIR:STATIC=/home/estebanp/catkin_ws/build/courseworks_answer_w1
 
 //Value Computed by CMake
@@ -391,6 +385,12 @@ message_generation_DIR:PATH=/opt/ros/melodic/share/message_generation/cmake
 message_runtime_DIR:PATH=/opt/ros/melodic/share/message_runtime/cmake
 
 //Value Computed by CMake
+open_path_follower_BINARY_DIR:STATIC=/home/estebanp/catkin_ws/build/open_path_follower
+
+//Value Computed by CMake
+open_path_follower_SOURCE_DIR:STATIC=/home/estebanp/catkin_ws/src/open_path_follower
+
+//Value Computed by CMake
 pid_control_BINARY_DIR:STATIC=/home/estebanp/catkin_ws/build/pid_control
 
 //Value Computed by CMake
@@ -422,9 +422,6 @@ rospy_DIR:PATH=/opt/ros/melodic/share/rospy/cmake
 
 //The directory containing a CMake configuration file for rostime.
 rostime_DIR:PATH=/opt/ros/melodic/share/rostime/cmake
-
-//The directory containing a CMake configuration file for std_msg.
-std_msg_DIR:PATH=std_msg_DIR-NOTFOUND
 
 //The directory containing a CMake configuration file for std_msgs.
 std_msgs_DIR:PATH=/opt/ros/melodic/share/std_msgs/cmake
