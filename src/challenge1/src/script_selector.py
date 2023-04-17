@@ -49,7 +49,7 @@ if __name__ == '__main__':
             "Enter total time in seconds: ") if type_select == "TIME" else 0
 
         turn_velocity = input(
-            "Enter turn velocity in m/s: ") if type_select == "VELOCITY" else 0
+            "Enter turn velocity in r/s: ") if type_select == "VELOCITY" else 0
 
         move_velocity = input(
             "Enter move velocity in m/s: ") if type_select == "VELOCITY" else 0
