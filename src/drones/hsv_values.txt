@@ -1,6 +1,6 @@
-H_min :37
-H_max :34
-S_min :150
-S_max :114
-V_min :86
+H_min :35
+H_max :80
+S_min :55
+S_max :121
+V_min :40
 V_max :255
