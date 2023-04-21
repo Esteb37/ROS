@@ -68,6 +68,8 @@ class PathFollower():
             self.reached_pub.publish(True)
         else:
             self.publish_vel(self.linear_vel, self.angular_vel)
+            self.reached_pub.publish(False)
+
 
     def update_position(self):
         """
