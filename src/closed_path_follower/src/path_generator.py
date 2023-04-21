@@ -30,8 +30,6 @@ class PathGenerator():
                 goal.position.x = path[i][0]
                 goal.position.y = path[i][1]
                 i += 1
-                print("published goal: " + str(goal.position.x) +
-                      " " + str(goal.position.y))
                 self.flag = False
 
             self.path_goal.publish(goal)

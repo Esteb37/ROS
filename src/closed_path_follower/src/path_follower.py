@@ -11,7 +11,7 @@ class PathFollower():
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
-    DISTANCE_TOLERANCE = 0.1
+    DISTANCE_TOLERANCE = 0.03
 
     def __init__(self):
 
@@ -63,12 +63,13 @@ class PathFollower():
 
         distance = np.sqrt(dx**2 + dy**2)
         angle = np.arctan2(dy, dx) - self.pose.orientation.z
+        angle = np.arctan2(np.sin(angle), np.cos(angle))
 
         if distance < self.DISTANCE_TOLERANCE:
             self.publish_vel(0, 0)
             self.reached_pub.publish(True)
         else:
-            self.publish_vel(distance*0.14, angle*2.3)
+            self.publish_vel(distance*0.4, angle*2)
             self.reached_pub.publish(False)
 
     def update_position(self):
