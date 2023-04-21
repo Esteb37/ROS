@@ -43,8 +43,9 @@ class PathFollower():
         rospy.Subscriber("/angular_vel", Float32, self.angular_vel_cb)
         rospy.Subscriber("/goal", Pose, self.goal_cb)
 
+        print("Waiting for time to be set...")
         while rospy.get_time() == 0:
-            print("No simulated time received")
+            pass
 
         print("Running...")
         while not rospy.is_shutdown():
@@ -69,7 +70,7 @@ class PathFollower():
             self.publish_vel(0, 0)
             self.reached_pub.publish(True)
         else:
-            self.publish_vel(distance*0.4, angle*2)
+            self.publish_vel(self.linear_vel, self.angular_vel)
             self.reached_pub.publish(False)
 
     def update_position(self):
@@ -79,18 +80,18 @@ class PathFollower():
 
         dt = rospy.get_time()-self.init_time
 
-        self.linear_vel = self.WHEEL_RADIUS * (self.wr+self.wl)/2
-        self.angular_vel = self.WHEEL_RADIUS * \
+        linear_vel = self.WHEEL_RADIUS * (self.wr+self.wl)/2
+        angular_vel = self.WHEEL_RADIUS * \
             (self.wr-self.wl)/self.TRACK_WIDTH
 
-        theta = self.angular_vel * dt
+        theta = angular_vel * dt
 
         self.pose.orientation.z += np.arctan2(
             np.sin(theta), np.cos(theta))
 
-        self.pose.position.x += self.linear_vel * \
+        self.pose.position.x += linear_vel * \
             dt * np.cos(self.pose.orientation.z)
-        self.pose.position.y += self.linear_vel * \
+        self.pose.position.y += linear_vel * \
             dt * np.sin(self.pose.orientation.z)
 
         self.init_time = rospy.get_time()
