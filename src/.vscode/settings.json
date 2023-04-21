@@ -3,6 +3,7 @@
 		"/home/estebanp/catkin_ws/devel/lib/python2.7/dist-packages",
 		"/opt/ros/melodic/lib/python2.7/dist-packages"
 	],
+	"python.languageServerPath": "/usr/local/bin/python-language-server",
 	"python.analysis.extraPaths": [
 		"/home/estebanp/catkin_ws/devel/lib/python2.7/dist-packages",
 		"/opt/ros/melodic/lib/python2.7/dist-packages"

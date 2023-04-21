@@ -62,12 +62,13 @@ class PathFollower():
         dy = self.goal.position.y - self.pose.position.y
 
         distance = np.sqrt(dx**2 + dy**2)
+        angle = np.arctan2(dy, dx) - self.pose.orientation.z
 
         if distance < self.DISTANCE_TOLERANCE:
             self.publish_vel(0, 0)
             self.reached_pub.publish(True)
         else:
-            self.publish_vel(self.linear_vel, self.angular_vel)
+            self.publish_vel(distance*0.14, angle*2.3)
             self.reached_pub.publish(False)
 
     def update_position(self):
