@@ -5,19 +5,6 @@ from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
 
-{
-	"python.autoComplete.extraPaths": [
-		"/home/estebanp/catkin_ws/devel/lib/python2.7/dist-packages",
-		"/opt/ros/melodic/lib/python2.7/dist-packages"
-	],
-	"python.analysis.extraPaths": [
-		"/home/estebanp/catkin_ws/devel/lib/python2.7/dist-packages",
-		"/opt/ros/melodic/lib/python2.7/dist-packages"
-	],
-	"python.analysis.autoSearchPaths": true,
-	"python.linting.pylintEnabled": true,
-	"python.linting.enabled": true,
-}
 
 class PathFollower():
 
@@ -82,7 +69,6 @@ class PathFollower():
         else:
             self.publish_vel(self.linear_vel, self.angular_vel)
             self.reached_pub.publish(False)
-
 
     def update_position(self):
         """
