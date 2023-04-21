@@ -56,18 +56,21 @@ def get_value(name):
 
 cv2.namedWindow("Sliders")
 cv2.resizeWindow("Sliders", 1000, 1000)
+
 cv2.createTrackbar("H Min", "Sliders", 0, 180,
                    lambda x: save_value("H_min", x))
 cv2.setTrackbarPos("H Min", "Sliders", get_value("H_min"))
 cv2.createTrackbar("H Max", "Sliders", 0, 180,
                    lambda x: save_value("H_max", x))
 cv2.setTrackbarPos("H Max", "Sliders", get_value("H_max"))
+
 cv2.createTrackbar("S Min", "Sliders", 0, 255,
                    lambda x: save_value("S_min", x))
 cv2.setTrackbarPos("S Min", "Sliders", get_value("S_min"))
 cv2.createTrackbar("S Max", "Sliders", 0, 255,
                    lambda x: save_value("S_max", x))
 cv2.setTrackbarPos("S Max", "Sliders", get_value("S_max"))
+
 cv2.createTrackbar("V Min", "Sliders", 0, 255,
                    lambda x: save_value("V_min", x))
 cv2.setTrackbarPos("V Min", "Sliders", get_value("V_min"))
