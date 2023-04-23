@@ -35,6 +35,7 @@ class PathFollower():
             'robot_pose', Pose, queue_size=1)
         self.reached_pub = rospy.Publisher(
             'reached_goal', Bool, queue_size=1)
+        self.reached_pub.publish(False)
 
         # Subscribers
         rospy.Subscriber("/wl", Float32, self.wl_cb)
@@ -63,8 +64,6 @@ class PathFollower():
         dy = self.goal.position.y - self.pose.position.y
 
         distance = np.sqrt(dx**2 + dy**2)
-        angle = np.arctan2(dy, dx) - self.pose.orientation.z
-        angle = np.arctan2(np.sin(angle), np.cos(angle))
 
         if distance < self.DISTANCE_TOLERANCE:
             self.publish_vel(0, 0)

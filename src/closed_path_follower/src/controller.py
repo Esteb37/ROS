@@ -67,6 +67,7 @@ if __name__ == '__main__':
 
         distance = np.sqrt(dx**2 + dy**2)
         angle = np.arctan2(dy, dx) - z_orientation
+        angle = np.arctan2(np.sin(angle), np.cos(angle))
 
         e[0] = distance if mode == "linear" else angle
 
