@@ -15,8 +15,6 @@ class PathGenerator():
         self.path_goal = rospy.Publisher('/goal', Pose, queue_size=1)
         rospy.Subscriber('/reached_goal', Bool, self.bandera_cb)
 
-        rospy.wait_for_message('/reached_goal', Bool)
-
         goal = Pose()
         path = rospy.get_param("/path")
         i = 0
