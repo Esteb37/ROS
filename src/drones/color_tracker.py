@@ -3,7 +3,7 @@ from djitellopy import Tello
 import cv2
 import numpy as np
 
-MODE = "WEBCAM"  # "WEBCAM" or "DRONE"
+MODE = "DRONE"  # "WEBCAM" or "DRONE"
 
 H_min = 0  # HUE (0-180) = (0-360)
 S_min = 21  # SATURATION (0-255)
