@@ -10,7 +10,7 @@ class LaserSubClass():
 
     SAFETY_DISTANCE = 0.20
     DISTANCE_GAIN = 0.5
-    ANGLE_GAIN = 2
+    ANGLE_GAIN = 1
 
     def __init__(self):
 
