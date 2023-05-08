@@ -1,0 +1,4 @@
+linear_controller_max_speed : 0.5
+angular_controller_max_speed : 2
+
+controller_Ts : 0.02
