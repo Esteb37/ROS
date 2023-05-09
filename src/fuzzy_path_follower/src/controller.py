@@ -42,19 +42,21 @@ if __name__ == '__main__':
     # Publishers
     pub = rospy.Publisher("/"+mode+"_vel", Float32, queue_size=10)
 
-    distance_antecedents = rospy.get_param(
-        "/"+mode+"_controller_distance_antecedents")
-    angle_antecedents = rospy.get_param(
-        "/"+mode+"_controller_angle_antecedents")
-    output_antecedents = rospy.get_param(
-        "/"+mode+"_controller_output_antecedents")
+    antecedents = rospy.get_param(
+        "/"+mode+"controllers_antecedents", [0, 0, 0])
+
+    distance_range = rospy.get_param("/distance_range", [0, 0])
+
+    angle_range = [-np.pi, np.pi]
+
+    output_range = rospy.get_param("/"+mode+"_output_range", [0, 0])
 
     rules = np.load(mode+"_rules.npy")
 
-    controller = wang_mendel([distance_antecedents, angle_antecedents, output_antecedents],
-                             (-5, 5),
-                             (-np.pi, np.pi),
-                             (-max_speed, max_speed),
+    controller = wang_mendel(antecedents,
+                             distance_range,
+                             angle_range,
+                             output_range,
                              rules)
 
     while not rospy.is_shutdown():
