@@ -28,11 +28,11 @@ class BallTracker():
         self.bridge_object = CvBridge()
         self.center_ros = Point()
 
-        self.radius_ros = 0
         r_radius = 0
         g_radius = 0
         y_radius = 0
         self.image_received_flag = 0 #This flag is to ensure we received at least one self.frame
+        self.radius_ros = 0
 
         ap = argparse.ArgumentParser()
         ap.add_argument("-v", "--video",
@@ -43,17 +43,21 @@ class BallTracker():
 
 
         # define the lower and upper boundaries for each color
-        redColorLower = (0, 120, 50)
-        redColorUpper = (20, 255, 255)
-        greenColorLower = (50,220, 0)
-        greenColorUpper = (60, 255, 255)
-        yellowColorLower = (20, 120, 0)
-        yellowColorUpper = (170, 255, 255)
+        #The parameters are also here, in case the program do not find the yaml file
+        redColorLower = rospy.get_param("/redColorLower", (90, 120, 170))
+        redColorUpper = rospy.get_param("/redColorUpper", (180, 255, 255))
+        greenColorLower = rospy.get_param("/greenColorLower", (40, 20, 0))
+        greenColorUpper = rospy.get_param("/greenColorUpper", (80, 255, 255))
+        yellowColorLower = rospy.get_param("/yellowColorLower", (20, 120, 190))
+        yellowColorUpper = rospy.get_param("/yellowColorUpper", (60, 255, 255))
+
+        self.min_radius = rospy.get_param("/min_radius", 20)
         self.pts = deque(maxlen=self.args["buffer"])
 
         
         ros_rate = rospy.Rate(10)
         while not rospy.is_shutdown():
+            
             if self.image_received_flag == 1:
                 r_radius = self.find_ball(redColorLower, redColorUpper)
                 ros_rate.sleep()
@@ -67,7 +71,7 @@ class BallTracker():
 
                 #Publish the color of the traffic light
                 if r_radius or g_radius or y_radius:
-                    if r_radius > g_radius and r_radius > y_radius:
+                    if r_radius > g_radius and r_radius > y_radius: 
                         self.traffic_light_pub.publish("Red")
                     elif g_radius > r_radius and g_radius > y_radius:
                         self.traffic_light_pub.publish("Green")
@@ -91,8 +95,9 @@ class BallTracker():
     def find_ball(self, colorLower, colorUpper):
         # resize the.self.frame, blur it, and convert it to the HSV color space
         self.frame = imutils.resize(self.frame, width=600)
-        blurred = cv2.GaussianBlur(self.frame, (11, 11), 0)
-        hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+        #blurred = cv2.GaussianBlur(self.frame, (11, 11), 0)
+        median = cv2.medianBlur(self.frame,7)
+        hsv = cv2.cvtColor(median, cv2.COLOR_BGR2HSV)
 
         # construct a mask for the color, then perform a series of dilations and
         # erosions to remove any small blobs left in the mask
@@ -109,17 +114,16 @@ class BallTracker():
 
         # only proceed if at least one contour was found
         if len(cnts) > 0:
-            # find the largest contour in the mask, then use
-            # it to compute the minimum enclosing circle and
-            # centroid
+            # find the largest contour in the mask, then use it to 
+            # compute the minimum enclosing circle and centroid
             c = max(cnts, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
             # only proceed if the radius meets a minimum size
-            if radius > 10:
-                # draw the circle and centroid on the.self.frame,
+            if radius > self.min_radius:
+                # draw the circle and centroid on the self.frame,
                 # then update the list of tracked points
                 self.center_ros.x=float(x)
                 self.center_ros.y=float(y)
@@ -150,18 +154,13 @@ class BallTracker():
 
         # loop over the set of tracked points
         for i in range(1, len(self.pts)):
-            # if either of the tracked points are None, ignore
-            # them
+            # if either of the tracked points are None, ignore them
             if self.pts[i - 1] is None or self.pts[i] is None:
                 continue
-
-            # otherwise, compute the thickness of the line and
-            # draw the connecting lines
-            thickness = int(np.sqrt(self.args["buffer"] / float(i + 1)) * 2.5)
-            cv2.line(self.frame, self.pts[i - 1], self.pts[i], (0, 0, 255), thickness)
         
         return self.radius_ros
 
+    
     def cleanup(self):
         print("Shutting down vision node")
         cv2.destroyAllWindows()
