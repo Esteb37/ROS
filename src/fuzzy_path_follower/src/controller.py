@@ -11,6 +11,13 @@ def stop():
     print("Stopping...")
 
 
+x_pose = 0
+y_pose = 0
+z_orientation = 0
+x_goal = 0
+y_goal = 0
+
+
 def callback_robot_pose(r_pose):
     global x_pose, y_pose, z_orientation
     x_pose = r_pose.position.x
@@ -43,7 +50,7 @@ if __name__ == '__main__':
     pub = rospy.Publisher("/"+mode+"_vel", Float32, queue_size=10)
 
     antecedents = rospy.get_param(
-        "/"+mode+"controllers_antecedents", [0, 0, 0])
+        "/"+mode+"_controller_antecedents", [0, 0, 0])
 
     distance_range = rospy.get_param("/distance_range", [0, 0])
 
@@ -51,7 +58,8 @@ if __name__ == '__main__':
 
     output_range = rospy.get_param("/"+mode+"_output_range", [0, 0])
 
-    rules = np.load(mode+"_rules.npy")
+    rules = np.load(
+        "/home/estebanp/catkin_ws/src/fuzzy_path_follower/src/"+mode+"_rules.npy")
 
     controller = wang_mendel(antecedents,
                              distance_range,
@@ -69,6 +77,5 @@ if __name__ == '__main__':
         angle = np.arctan2(np.sin(angle), np.cos(angle))
 
         result = controller.get_output(distance, angle)
-
         pub.publish(result)
         rate.sleep()

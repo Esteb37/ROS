@@ -4,6 +4,7 @@ from std_msgs.msg import Float32, Bool
 from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
+import time
 
 
 class PathFollower():
@@ -11,12 +12,17 @@ class PathFollower():
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
-    DISTANCE_TOLERANCE = 0.03
+    DISTANCE_TOLERANCE = 0.5
 
     def __init__(self):
 
+        self.path = rospy.get_param("/path")
+        self.current_goal = 0
+
         self.pose = Pose()
         self.goal = Pose()
+        self.goal.position.x = self.path[0][0]
+        self.goal.position.y = self.path[0][1]
 
         self.linear_vel = 0
         self.angular_vel = 0
@@ -49,8 +55,12 @@ class PathFollower():
             pass
 
         print("Running...")
+
+        print_time = time.time()
+
         while not rospy.is_shutdown():
-            self.follow_path()
+            if self.follow_path():
+                break
             self.rate.sleep()
 
     def follow_path(self):
@@ -68,9 +78,16 @@ class PathFollower():
         if distance < self.DISTANCE_TOLERANCE:
             self.publish_vel(0, 0)
             self.reached_pub.publish(True)
+            self.current_goal += 1
+            if self.current_goal < len(self.path):
+                coords = self.path[self.current_goal]
+                self.goal.position.x = coords[0]
+                self.goal.position.y = coords[1]
         else:
             self.publish_vel(self.linear_vel, self.angular_vel)
             self.reached_pub.publish(False)
+
+        return False
 
     def update_position(self):
         """
