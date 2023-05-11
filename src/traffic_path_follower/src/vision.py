@@ -1,93 +1,172 @@
-"""
-	Nodo de ROS
-	Publica a /traffic_light
- 
-	Suscrito a la cámara del robot, creo que está en "camera/image_raw" (para las pruebas se puede usar la webcam)
- 
- 	Procesamiento:
-		Recibe la imagen
-		Filtra ruido con un filtro gaussiano o cualquier otro que nos haya enseñado josué
-		Aplica máscaras para cada color (rojo, verde, amarillo)
-		Detecta si alguna de las máscaras genera un círculo mayor a un radio específico (esto lo explica manchester)
-	
-		Si no detecta ningún círculo o ninguno del tamaño correcto, enviar none
-		Si alguna de las máscaras detecta un círculo del tamaño correcto, enviar el color correspondiente
-		Si detecta más de un círculo del tamaño correcto, enviar el color del círculo más grande
+#!/usr/bin/env python
 
-	Publicar a /traffic_light
- 
-	Obtener rangos de HSV para cada color (rojo, verde, amarillo) de un archivo de parámetros
-	Obtener un radio mínimo para considerar el semáforo como válido de un archivo de parámetros
-"""
-
-#!/usr/bin/env python 
-
+# import ROS stuff
 import rospy
+from std_msgs.msg import Int32, String
+from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-import cv2
+# import the necessary packages
+from collections import deque
+from imutils.video import VideoStream
 import numpy as np
+import argparse
+import cv2
+import imutils
+import time
+import rospy
 
-min_green = np.array([50, 220, 0])
-max_green = np.array([60, 255, 255])
 
-min_red = np.array([0, 50, 50])
-max_red = np.array([10, 255, 255])
-
-min_yellow = np.array([10, 220, 0])
-max_yellow = np.array([30, 255, 255])
-
-class ImageProcessing(object):
-
+class BallTracker():
     def __init__(self):
-        self.image_sub = rospy.Subscriber("camera/image_raw", Image, self.camera_callback)
-        self.segmented_image_pub = rospy.Publisher("traffic_light", Image)
-        self.bridge_object = CvBridge()
-        self.image_received = 0 #Flag to indicate that we have already received an image
-        r = rospy.Rate(10) #10Hz
-
         rospy.on_shutdown(self.cleanup)
-        while not rospy.is_shutdown():        
-            if self.image_received:
-                hsv = cv2.cvtColor(self.cv_image, cv2.COLOR_BGR2HSV)
+        
+        rospy.init_node("vision")
+        self.traffic_light_pub = rospy.Publisher("traffic_light", String)
+        self.image_sub = rospy.Subscriber("camera/image_raw",Image,self.camera_callback)
 
-                mask_g = cv2.inRange(hsv, min_green, max_green)
-                mask_r = cv2.inRange(hsv, min_red, max_red)
-                mask_y = cv2.inRange(hsv, min_yellow, max_yellow)
-                
-                res_g = cv2.bitwise_and(self.cv_image, self.cv_image, mask=mask_g)
-                res_r = cv2.bitwise_and(self.cv_image, self.cv_image, mask=mask_r)
-                res_y = cv2.bitwise_and(self.cv_image, self.cv_image, mask=mask_y)
+        self.bridge_object = CvBridge()
+        self.center_ros = Point()
 
-                cv2.imshow('original image',self.cv_image)
-                cv2.imshow('Green', res_g)
-                cv2.imshow('Red', res_r)
-                cv2.imshow('Yellow', res_y)
-                
-                #imgs = np.concatenate((res_g, res_r, res_y), axis=0)
-                #cv2.imshow('G, R, Y', imgs)
+        self.radius_ros = 0
+        r_radius = 0
+        g_radius = 0
+        y_radius = 0
+        self.image_received_flag = 0 #This flag is to ensure we received at least one self.frame
 
-                image_message = self.bridge_object.cv2_to_imgmsg(res_y, encoding="bgr8")
-                self.segmented_image_pub.publish(image_message)
-            cv2.waitKey(1)
-            r.sleep()
-        cv2.destroyAllWindows()
+        ap = argparse.ArgumentParser()
+        ap.add_argument("-v", "--video",
+            help="path to the (optional) video file")
+        ap.add_argument("-b", "--buffer", type=int, default=64,
+            help="max buffer size")
+        self.args = vars(ap.parse_args())
 
-    def camera_callback(self,data):
+
+        # define the lower and upper boundaries for each color
+        redColorLower = (0, 120, 50)
+        redColorUpper = (20, 255, 255)
+        greenColorLower = (50,220, 0)
+        greenColorUpper = (60, 255, 255)
+        yellowColorLower = (20, 120, 0)
+        yellowColorUpper = (170, 255, 255)
+        self.pts = deque(maxlen=self.args["buffer"])
+
+        
+        ros_rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            if self.image_received_flag == 1:
+                r_radius = self.find_ball(redColorLower, redColorUpper)
+                ros_rate.sleep()
+                g_radius = self.find_ball(greenColorLower, greenColorUpper)
+                ros_rate.sleep()
+                y_radius = self.find_ball(yellowColorLower, yellowColorUpper)
+                print("Red r: " + str(r_radius) + " Green r: " + str(g_radius) + " Yellow r: " + str(y_radius))
+
+                cv2.imshow("Frame", self.frame)
+                self.image_received_flag = 0
+
+                #Publish the color of the traffic light
+                if r_radius or g_radius or y_radius:
+                    if r_radius > g_radius and r_radius > y_radius:
+                        self.traffic_light_pub.publish("Red")
+                    elif g_radius > r_radius and g_radius > y_radius:
+                        self.traffic_light_pub.publish("Green")
+                    else:
+                        self.traffic_light_pub.publish("Yellow")
+                else:
+                    self.traffic_light_pub.publish(None)
+            
+            key = cv2.waitKey(1) & 0xFF
+            ros_rate.sleep()
+
+
+    def camera_callback(self, data):
         try:
-            # We select bgr8 because its the OpenCV encoding by default
-            self.cv_image = self.bridge_object.imgmsg_to_cv2(data, desired_encoding="bgr8")
+            self.frame = self.bridge_object.imgmsg_to_cv2(data, desired_encoding="bgr8")
+            self.image_received_flag = 1
         except CvBridgeError as e:
             print(e)
-        self.image_received=1
+
+
+    def find_ball(self, colorLower, colorUpper):
+        # resize the.self.frame, blur it, and convert it to the HSV color space
+        self.frame = imutils.resize(self.frame, width=600)
+        blurred = cv2.GaussianBlur(self.frame, (11, 11), 0)
+        hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+
+        # construct a mask for the color, then perform a series of dilations and
+        # erosions to remove any small blobs left in the mask
+        mask = cv2.inRange(hsv, colorLower, colorUpper)
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=2)
+
+        # find contours in the mask and initialize the current
+        # (x, y) center of the ball
+        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        center = None
+
+        # only proceed if at least one contour was found
+        if len(cnts) > 0:
+            # find the largest contour in the mask, then use
+            # it to compute the minimum enclosing circle and
+            # centroid
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            M = cv2.moments(c)
+            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+
+            # only proceed if the radius meets a minimum size
+            if radius > 10:
+                # draw the circle and centroid on the.self.frame,
+                # then update the list of tracked points
+                self.center_ros.x=float(x)
+                self.center_ros.y=float(y)
+                self.center_ros.z=0 #As it is an self.frame z is not used.
+                self.radius_ros=int(radius)
+
+                cv2.circle(self.frame, (int(x), int(y)), int(radius),
+                    (0, 255, 255), 2)
+                cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
+            else:
+                self.center_ros.x=0
+                self.center_ros.y=0
+                self.center_ros.z=0
+                self.radius_ros=0
+                cv2.circle(self.frame, (int(x), int(y)), int(radius),
+                    (0, 255, 255), 2)
+                cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
+        else:
+            # Publish a radius of zero if there is no detected object
+            self.center_ros.x=0
+            self.center_ros.y=0
+            self.center_ros.z=0
+            self.radius_ros=0
+            cv2.circle(self.frame, (0, 0), 1, (0, 0, 0), 2)
+
+        # update the points queue
+        self.pts.appendleft(center)
+
+        # loop over the set of tracked points
+        for i in range(1, len(self.pts)):
+            # if either of the tracked points are None, ignore
+            # them
+            if self.pts[i - 1] is None or self.pts[i] is None:
+                continue
+
+            # otherwise, compute the thickness of the line and
+            # draw the connecting lines
+            thickness = int(np.sqrt(self.args["buffer"] / float(i + 1)) * 2.5)
+            cv2.line(self.frame, self.pts[i - 1], self.pts[i], (0, 0, 255), thickness)
+        
+        return self.radius_ros
 
     def cleanup(self):
-        """
-        Stops the robot when the program is interrupted.
-        """
-        cv2.imwrite('robot_image.jpg',self.cv_image)
-        print("I'm saving the last image")
+        print("Shutting down vision node")
+        cv2.destroyAllWindows()
+        
 
 if __name__ == '__main__':
-    rospy.init_node('vision', anonymous=True)
-    showing_image_object = ImageProcessing()
+    #rospy.init_node('vision', anonymous=True)
+    BallTracker()
