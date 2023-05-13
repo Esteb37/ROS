@@ -74,8 +74,6 @@ class PathFollower():
         dy = self.goal.position.y - self.pose.position.y
 
         distance = np.sqrt(dx**2 + dy**2)
-        angle = np.arctan2(dy, dx) - self.pose.orientation.z
-        angle = np.arctan2(np.sin(angle), np.cos(angle))
 
         if distance < self.DISTANCE_TOLERANCE:
             self.is_stopped = True
@@ -84,6 +82,7 @@ class PathFollower():
                 coords = self.path[self.current_goal]
                 self.goal.position.x = coords[0]
                 self.goal.position.y = coords[1]
+                self.reached_pub.publish(True)
 
         if self.is_stopped:
 
