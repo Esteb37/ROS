@@ -1,22 +1,4 @@
 #!/usr/bin/env python
-"""
-    Agregar:
-        Callback a color de luz de semaforo (red, green, yellow, none)
-        Suscrito a tópico de /traffic_light
-    
-        Reglas de control de velocidad según luz
-            Si se está moviendo y detecta verde o nada, seguir igual
-            Si se está moviendo y detecta amarillo, reducir la velocidad al 50%
-            Si se está moviendo y detecta rojo, detenerse por completo
-            
-            Si llega a un goal, dejar de avanzar por completo hasta que vea verde
-            Si llega a un goal y no ve nada, ve rojo, o ve amarillo, detenerse
-            Si está en un goal y ve verde, avanzar
-            
-            Si está detenido por la luz roja y ve verde, avanzar
-            Si está detenido por la luz roja y ve rojo, amarillo o nada, seguir detenido
-"""
-
 
 import rospy
 from geometry_msgs.msg import Pose

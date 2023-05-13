@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from std_msgs.msg import Float32, Bool
+from std_msgs.msg import Float32, Bool, String
 from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
@@ -27,6 +27,8 @@ class PathFollower():
         self.angular_vel = 0
         self.wl = 0
         self.wr = 0
+        self.traffic_light_status = "none"
+        self.is_stopped = True
 
         self.init_time = rospy.get_time()
 
@@ -35,7 +37,8 @@ class PathFollower():
         self.rate = rospy.Rate(50)
 
         # Publishers
-        self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+        self.cmd_vel_pub = rospy.Publisher(
+            'cmd_vel', Twist, queue_size=1)
         self.pose_pub = rospy.Publisher(
             'robot_pose', Pose, queue_size=1)
         self.reached_pub = rospy.Publisher(
@@ -48,6 +51,7 @@ class PathFollower():
         rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
         rospy.Subscriber("/angular_vel", Float32, self.angular_vel_cb)
         rospy.Subscriber("/goal", Pose, self.goal_cb)
+        rospy.Subscriber("/traffic_light", String, self.traffic_light_cb)
 
         print("Waiting for time to be set...")
         while rospy.get_time() == 0:
@@ -56,7 +60,7 @@ class PathFollower():
         print("Running...")
 
         while not rospy.is_shutdown():
-            self.follow_path():
+            self.follow_path()
             self.rate.sleep()
 
     def follow_path(self):
@@ -74,16 +78,32 @@ class PathFollower():
         angle = np.arctan2(np.sin(angle), np.cos(angle))
 
         if distance < self.DISTANCE_TOLERANCE:
-            self.publish_vel(0, 0)
-            self.reached_pub.publish(True)
+            self.is_stopped = True
             self.current_goal += 1
             if self.current_goal < len(self.path):
                 coords = self.path[self.current_goal]
                 self.goal.position.x = coords[0]
                 self.goal.position.y = coords[1]
+
+        if self.is_stopped:
+
+            self.publish_vel(0,0)
+
+            if self.traffic_light_status == "green":
+                self.publish_vel(self.linear_vel, self.angular_vel)
+                self.is_stopped = False
+
         else:
-            self.publish_vel(self.linear_vel, self.angular_vel)
-            self.reached_pub.publish(False)
+            if self.traffic_light_status == "red":
+                self.is_stopped = True
+
+            elif self.traffic_light_status == "yellow":
+                self.publish_vel(self.linear_vel * 0.5, self.angular_vel)
+
+            else:
+                self.publish_vel(self.linear_vel, self.angular_vel)
+
+        return False
 
     def update_position(self):
         """
@@ -143,9 +163,13 @@ class PathFollower():
     def goal_cb(self, msg):
         self.goal = msg
 
+    def traffic_light_cb(self, msg):
+        self.traffic_light_status = msg.data
 
 ############################### MAIN PROGRAM ####################################
 if __name__ == "__main__":
+
+    args = rospy.myargv()[1:]
 
     rospy.init_node("path_follower", anonymous=True)
     PathFollower()

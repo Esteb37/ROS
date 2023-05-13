@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
-    <rosparam file = "$(find closed_path_follower)/config/path.yaml" command = "load"  />
-    <rosparam file = "$(find closed_path_follower)/config/controller_params.yaml" command = "load"  />
-    <node name="vision" pkg="closed_path_follower" type="vision.py" output="screen"/>
-    <node name="linear_controller" pkg="closed_path_follower" type="controller.py" output="screen"/>
-    <node name="angular_controller" pkg="closed_path_follower" type="controller.py" output="screen"/>
-    <node name="path_generator" pkg="closed_path_follower" type="path_generator.py" output="screen"/>
-    <node name="path_follower" pkg="closed_path_follower" type="path_follower.py" output="screen"/>
+    <rosparam file = "$(find traffic_path_follower)/config/path.yaml" command = "load"  />
+    <rosparam file = "$(find traffic_path_follower)/config/controller_params.yaml" command = "load"  />
+    <rosparam file = "$(find traffic_path_follower)/config/vision_params.yaml" command = "load"  />
+    <node name="light_detector" pkg="traffic_path_follower" type="light_detector.py" />
+    <node name="linear_controller" pkg="traffic_path_follower" type="controller.py" />
+    <node name="angular_controller" pkg="traffic_path_follower" type="controller.py" />
+    <node name="path_generator" pkg="traffic_path_follower" type="path_generator.py"/>
+    <node name="path_follower" pkg="traffic_path_follower" type="path_follower.py" output="screen"/>
 </launch>

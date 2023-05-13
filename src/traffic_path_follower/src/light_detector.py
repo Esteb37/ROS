@@ -2,28 +2,22 @@
 
 # import ROS stuff
 import rospy
-from std_msgs.msg import Int32, String
+from std_msgs.msg import String
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
 from collections import deque
-from imutils.video import VideoStream
-import numpy as np
-import argparse
 import cv2
 import imutils
-import time
 import rospy
 
 
-class BallTracker():
+class LightDetector():
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
-        
-        rospy.init_node("vision")
-        self.traffic_light_pub = rospy.Publisher("traffic_light", String)
-        self.image_sub = rospy.Subscriber("camera/image_raw",Image,self.camera_callback)
+        self.traffic_light_pub = rospy.Publisher("traffic_light", String, queue_size=1)
+        self.image_sub = rospy.Subscriber("camera/image_raw", Image, self.camera_callback)
 
         self.bridge_object = CvBridge()
         self.center_ros = Point()
@@ -34,30 +28,24 @@ class BallTracker():
         self.image_received_flag = 0 #This flag is to ensure we received at least one self.frame
         self.radius_ros = 0
 
-        ap = argparse.ArgumentParser()
-        ap.add_argument("-v", "--video",
-            help="path to the (optional) video file")
-        ap.add_argument("-b", "--buffer", type=int, default=64,
-            help="max buffer size")
-        self.args = vars(ap.parse_args())
-
 
         # define the lower and upper boundaries for each color
         #The parameters are also here, in case the program do not find the yaml file
-        redColorLower = rospy.get_param("/redColorLower", (90, 120, 170))
-        redColorUpper = rospy.get_param("/redColorUpper", (180, 255, 255))
-        greenColorLower = rospy.get_param("/greenColorLower", (40, 20, 0))
-        greenColorUpper = rospy.get_param("/greenColorUpper", (80, 255, 255))
-        yellowColorLower = rospy.get_param("/yellowColorLower", (20, 120, 190))
-        yellowColorUpper = rospy.get_param("/yellowColorUpper", (60, 255, 255))
+        redColorLower = tuple(rospy.get_param("/redColorLower", (90, 120, 170)))
+        redColorUpper = tuple(rospy.get_param("/redColorUpper", (180, 255, 255)))
+        greenColorLower = tuple(rospy.get_param("/greenColorLower", (40, 20, 0)))
+        greenColorUpper = tuple(rospy.get_param("/greenColorUpper", (80, 255, 255)))
+        yellowColorLower = tuple(rospy.get_param("/yellowColorLower", (20, 120, 190)))
+        yellowColorUpper = tuple(rospy.get_param("/yellowColorUpper", (60, 255, 255)))
+
 
         self.min_radius = rospy.get_param("/min_radius", 20)
-        self.pts = deque(maxlen=self.args["buffer"])
+        self.pts = deque(maxlen=64)
 
-        
+
         ros_rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            
+
             if self.image_received_flag == 1:
                 r_radius = self.find_ball(redColorLower, redColorUpper)
                 ros_rate.sleep()
@@ -71,15 +59,15 @@ class BallTracker():
 
                 #Publish the color of the traffic light
                 if r_radius or g_radius or y_radius:
-                    if r_radius > g_radius and r_radius > y_radius: 
-                        self.traffic_light_pub.publish("Red")
+                    if r_radius > g_radius and r_radius > y_radius:
+                        self.traffic_light_pub.publish("red")
                     elif g_radius > r_radius and g_radius > y_radius:
-                        self.traffic_light_pub.publish("Green")
+                        self.traffic_light_pub.publish("green")
                     else:
-                        self.traffic_light_pub.publish("Yellow")
+                        self.traffic_light_pub.publish("yellow")
                 else:
-                    self.traffic_light_pub.publish(None)
-            
+                    self.traffic_light_pub.publish("none")
+
             key = cv2.waitKey(1) & 0xFF
             ros_rate.sleep()
 
@@ -114,7 +102,7 @@ class BallTracker():
 
         # only proceed if at least one contour was found
         if len(cnts) > 0:
-            # find the largest contour in the mask, then use it to 
+            # find the largest contour in the mask, then use it to
             # compute the minimum enclosing circle and centroid
             c = max(cnts, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
@@ -157,15 +145,15 @@ class BallTracker():
             # if either of the tracked points are None, ignore them
             if self.pts[i - 1] is None or self.pts[i] is None:
                 continue
-        
+
         return self.radius_ros
 
-    
+
     def cleanup(self):
         print("Shutting down vision node")
         cv2.destroyAllWindows()
-        
+
 
 if __name__ == '__main__':
-    #rospy.init_node('vision', anonymous=True)
-    BallTracker()
+    rospy.init_node('light_detector', anonymous=True)
+    LightDetector()
