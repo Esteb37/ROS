@@ -17,6 +17,7 @@ class LightDetector():
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
         self.traffic_light_pub = rospy.Publisher("traffic_light", String, queue_size=1)
+        self.image_pub = rospy.Publisher("/processed_image", Image, queue_size=1)
         self.image_sub = rospy.Subscriber("/video_source/raw", Image, self.camera_callback)
 
         self.bridge_object = CvBridge()
@@ -54,7 +55,11 @@ class LightDetector():
                 y_radius = self.find_ball(yellowColorLower, yellowColorUpper)
                 print("Red r: " + str(r_radius) + " Green r: " + str(g_radius) + " Yellow r: " + str(y_radius))
 
-                cv2.imshow("Frame", self.frame)
+                # cv2.imshow("Frame", self.frame)
+
+                image_topic = self.bridge_object.cv2_to_imgmsg(self.frame, encoding="bgr8")
+                self.image_pub.publish(image_topic)
+
                 self.image_received_flag = 0
 
                 #Publish the color of the traffic light
