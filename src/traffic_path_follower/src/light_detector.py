@@ -17,7 +17,7 @@ class LightDetector():
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
         self.traffic_light_pub = rospy.Publisher("traffic_light", String, queue_size=1)
-        self.image_sub = rospy.Subscriber("camera/image_raw", Image, self.camera_callback)
+        self.image_sub = rospy.Subscriber("/video_source/raw", Image, self.camera_callback)
 
         self.bridge_object = CvBridge()
         self.center_ros = Point()
@@ -43,7 +43,7 @@ class LightDetector():
         self.pts = deque(maxlen=64)
 
 
-        ros_rate = rospy.Rate(10)
+        ros_rate = rospy.Rate(50)
         while not rospy.is_shutdown():
 
             if self.image_received_flag == 1:
@@ -156,4 +156,5 @@ class LightDetector():
 
 if __name__ == '__main__':
     rospy.init_node('light_detector', anonymous=True)
+    print("Running light detector")
     LightDetector()
