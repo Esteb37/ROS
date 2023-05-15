@@ -11,7 +11,7 @@ from collections import deque
 import cv2
 import imutils
 import rospy
-
+import numpy as np
 
 class LightDetector():
     def __init__(self):
@@ -61,9 +61,7 @@ class LightDetector():
             if self.image_received_flag == 1:
                 r_radius = self.find_ball(
                     redColorLower, redColorUpper, secondRedColorLower, secondRedColorUpper)
-                ros_rate.sleep()
                 g_radius = self.find_ball(greenColorLower, greenColorUpper)
-                ros_rate.sleep()
                 y_radius = self.find_ball(yellowColorLower, yellowColorUpper)
                 print("Red r: " + str(r_radius) + " Green r: " +
                       str(g_radius) + " Yellow r: " + str(y_radius))
@@ -114,60 +112,25 @@ class LightDetector():
         mask = cv2.erode(mask, None, iterations=2)
         mask = cv2.dilate(mask, None, iterations=2)
 
-        # find contours in the mask and initialize the current
-        # (x, y) center of the ball
-        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
-        center = None
+        cv2.imshow("Mask",mask)
+        # Blur using 3 * 3 kernel.
+        gray_blurred = cv2.blur(mask, (3, 3))
 
-        # only proceed if at least one contour was found
-        if len(cnts) > 0:
-            # find the largest contour in the mask, then use it to
-            # compute the minimum enclosing circle and centroid
-            c = max(cnts, key=cv2.contourArea)
-            ((x, y), radius) = cv2.minEnclosingCircle(c)
-            M = cv2.moments(c)
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        # Apply Hough transform on the blurred image.
+        detected_circles = cv2.HoughCircles(gray_blurred,
+                        cv2.HOUGH_GRADIENT, 1, 20, param1 = 50,
+                    param2 = 30, minRadius = self.min_radius, maxRadius = 1000)
 
-            # only proceed if the radius meets a minimum size
-            if radius > self.min_radius:
-                # draw the circle and centroid on the self.frame,
-                # then update the list of tracked points
-                self.center_ros.x = float(x)
-                self.center_ros.y = float(y)
-                self.center_ros.z = 0  # As it is an self.frame z is not used.
-                self.radius_ros = int(radius)
-
-                cv2.circle(self.frame, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-                cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
-            else:
-                self.center_ros.x = 0
-                self.center_ros.y = 0
-                self.center_ros.z = 0
-                self.radius_ros = 0
-                cv2.circle(self.frame, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-                cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
+        if detected_circles is not None:
+            circle = detected_circles[0][0]
+            x, y, radius = circle
+            cv2.circle(self.frame, (int(x), int(y)), int(radius),
+                (0, 255, 255), 2)
+            cv2.circle(self.frame, (int(x),int(y)), 5, (0, 0, 255), -1)
         else:
-            # Publish a radius of zero if there is no detected object
-            self.center_ros.x = 0
-            self.center_ros.y = 0
-            self.center_ros.z = 0
-            self.radius_ros = 0
-            cv2.circle(self.frame, (0, 0), 1, (0, 0, 0), 2)
+            return 0
+        return radius
 
-        # update the points queue
-        self.pts.appendleft(center)
-
-        # loop over the set of tracked points
-        for i in range(1, len(self.pts)):
-            # if either of the tracked points are None, ignore them
-            if self.pts[i - 1] is None or self.pts[i] is None:
-                continue
-
-        return self.radius_ros
 
     def cleanup(self):
         print("Shutting down vision node")

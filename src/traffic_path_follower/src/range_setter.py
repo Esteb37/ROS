@@ -74,9 +74,9 @@ class LightDetector():
                 mask = cv2.inRange(hsv, (H_min, S_min, V_min),
                                    (H_max, S_max, V_max))
 
-                mask2 = cv2.inRange(hsv, (0, 115, 0), (5, 255, 255))
+                #mask2 = cv2.inRange(hsv, (0, 115, 0), (5, 255, 255))
 
-                mask = cv2.bitwise_or(mask, mask2)
+                # mask = cv2.bitwise_or(mask, mask2)
 
                 mask = cv2.erode(mask, None, iterations=2)
                 mask = cv2.dilate(mask, None, iterations=2)
