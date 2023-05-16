@@ -14,7 +14,7 @@ class BallFollowerClass():
         rospy.Subscriber("center", Point, self.center_cb)
 
         vel = Twist()
-        kv = 3.0
+        kv = 5.0
         kw = 0.002
         self.radius = 0.0
         self.xc = 0.0
@@ -29,9 +29,9 @@ class BallFollowerClass():
                 vel.linear.x = 0.0
 
             if self.radius == 0:
-                vel.angular.z = 2
-
-            vel.angular.z = kw*(300-self.xc)
+                vel.angular.z = 1
+            else:
+                vel.angular.z = kw*(300-self.xc)
 
             self.cmd_vel_pub.publish(vel)
             r.sleep()
