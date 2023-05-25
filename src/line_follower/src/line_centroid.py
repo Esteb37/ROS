@@ -33,6 +33,14 @@ class LineDetector():
             if self.image_received_flag == 1:
 
                 # TODO Get the centroid
+                """
+                    Hay que encontrar la línea con un filtro o algo
+                    Una vez encontrada la línea, se calcula la posición del centroide
+                    Solo nos interesa la posición del centroide en el eje horizontal,
+                    porque queremos centrar el robot en la línea
+                    Estaría bien que implementáramos algo para que si detecta una segunda
+                    línea, la ignore para que se mantenga sobre la correcta
+                """
 
                 centroid = 0
 
@@ -55,43 +63,6 @@ class LineDetector():
             self.image_received_flag = 1
         except CvBridgeError as e:
             print(e)
-
-        # resize the.self.frame, blur it, and convert it to the HSV color space
-        self.frame = imutils.resize(self.frame, width=600)
-        # blurred = cv2.GaussianBlur(self.frame, (11, 11), 0)
-        median = cv2.medianBlur(self.frame, 7)
-        hsv = cv2.cvtColor(median, cv2.COLOR_BGR2HSV)
-
-        # construct a mask for the color, then perform a series of dilations and
-        # erosions to remove any small blobs left in the mask
-        mask = cv2.inRange(hsv, colorLower, colorUpper)
-        if secondLower is not None and secondUpper is not None:
-            mask2 = cv2.inRange(hsv, secondLower, secondUpper)
-            mask = cv2.bitwise_or(mask, mask2)
-        mask = cv2.erode(mask, None, iterations=2)
-        mask = cv2.dilate(mask, None, iterations=2)
-        cv2.imshow("mask", mask)
-        gray_blurred = cv2.blur(mask, (3, 3))
-
-        detected_circles = cv2.HoughCircles(gray_blurred,
-                                            cv2.HOUGH_GRADIENT, 1, 20, param1=50,
-                                            param2=30, minRadius=self.min_radius, maxRadius=1000)
-
-        if detected_circles is not None:
-            print(len(detected_circles))
-            # find the circle with the largest radius
-            largest_circle = detected_circles[0][0]
-            for circle in detected_circles[0]:
-                if circle[2] > largest_circle[2]:
-                    largest_circle = circle
-
-            x, y, radius = largest_circle
-            cv2.circle(self.frame, (x, y),
-                       radius, (0, 255, 0), 2)
-            cv2.circle(self.frame, (x, y),
-                       2, (0, 0, 255), 3)
-            return radius
-        return 0
 
     def cleanup(self):
         print("Shutting down vision node")

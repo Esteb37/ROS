@@ -8,14 +8,11 @@ import rospy
 
 class PathFollower():
 
-    TRACK_WIDTH = 0.19
-    WHEEL_RADIUS = 0.05
-
-    DISTANCE_TOLERANCE = 0.5
+    LINEAR_VELOCITY = 0.5
 
     def __init__(self):
 
-        self.linear_vel = 0
+        self.linear_vel = self.LINEAR_VELOCITY
         self.angular_vel = 0
         self.wl = 0
         self.wr = 0
@@ -36,8 +33,8 @@ class PathFollower():
         # Subscribers
         rospy.Subscriber("/wl", Float32, self.wl_cb)
         rospy.Subscriber("/wr", Float32, self.wr_cb)
-        rospy.Subscriber("/line_centroid", Float32, self.line_centroid_cb)
         rospy.Subscriber("/traffic_light", String, self.traffic_light_cb)
+        rospy.Suscriber("/angular_vel", Float32, self.angular_vel_cb)
 
         print("Waiting for time to be set...")
         while rospy.get_time() == 0:
@@ -51,7 +48,7 @@ class PathFollower():
 
     def follow_line(self):
 
-        # TODO Drive robot forward and keep the centroid at the center of the camera
+        # The linear velocity is constant and the angular velocity is sent by the PID controller
 
         if self.is_stopped:
 
@@ -98,8 +95,8 @@ class PathFollower():
     def traffic_light_cb(self, msg):
         self.traffic_light_status = msg.data
 
-    def light_centroid_cb(self, msg):
-        self.line_centroid = msg.data
+    def angular_vel_cb(self, msg):
+        self.angular_vel = msg.data
 
 
 ############################### MAIN PROGRAM ####################################
