@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <launch>
-    <rosparam file = "$(find line_follower)/config/path.yaml" command = "load"  />
     <rosparam file = "$(find line_follower)/config/controller_params.yaml" command = "load"  />
     <rosparam file = "$(find line_follower)/config/vision_params.yaml" command = "load"  />
     <node name="line_detector" pkg="line_follower" type="line_centroid.py" />

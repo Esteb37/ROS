@@ -6,7 +6,7 @@ import numpy as np
 import rospy
 
 
-class PathFollower():
+class LineFollower():
 
     LINEAR_VELOCITY = 0.5
 
@@ -17,7 +17,7 @@ class PathFollower():
         self.wl = 0
         self.wr = 0
         self.traffic_light_status = "none"
-        self.is_stopped = True
+        self.is_stopped = False
         self.line_centroid = 0
 
         self.init_time = rospy.get_time()
@@ -34,7 +34,7 @@ class PathFollower():
         rospy.Subscriber("/wl", Float32, self.wl_cb)
         rospy.Subscriber("/wr", Float32, self.wr_cb)
         rospy.Subscriber("/traffic_light", String, self.traffic_light_cb)
-        rospy.Suscriber("/angular_vel", Float32, self.angular_vel_cb)
+        rospy.Subscriber("/angular_vel", Float32, self.angular_vel_cb)
 
         print("Waiting for time to be set...")
         while rospy.get_time() == 0:
@@ -43,7 +43,7 @@ class PathFollower():
         print("Running...")
 
         while not rospy.is_shutdown():
-            self.follow_path()
+            self.follow_line()
             self.rate.sleep()
 
     def follow_line(self):
@@ -105,4 +105,4 @@ if __name__ == "__main__":
     args = rospy.myargv()[1:]
 
     rospy.init_node("path_follower", anonymous=True)
-    PathFollower()
+    LineFollower()

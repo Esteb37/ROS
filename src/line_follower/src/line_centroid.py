@@ -25,7 +25,7 @@ class LineDetector():
         self.image_pub = rospy.Publisher(
             "/processed_image", Image, queue_size=1)
         self.image_sub = rospy.Subscriber(
-            "/video_source/raw", Image, self.camera_callback)
+            "/camera/image_raw", Image, self.camera_callback)
 
         ros_rate = rospy.Rate(50)
         while not rospy.is_shutdown():
@@ -34,12 +34,12 @@ class LineDetector():
 
                 # TODO Get the centroid
                 """
-                    Hay que encontrar la línea con un filtro o algo
-                    Una vez encontrada la línea, se calcula la posición del centroide
-                    Solo nos interesa la posición del centroide en el eje horizontal,
-                    porque queremos centrar el robot en la línea
-                    Estaría bien que implementáramos algo para que si detecta una segunda
-                    línea, la ignore para que se mantenga sobre la correcta
+                    Hay que encontrar la linea con un filtro o algo
+                    Una vez encontrada la linea, se calcula la posicion del centroide
+                    Solo nos interesa la posicion del centroide en el eje horizontal,
+                    porque queremos centrar el robot en la linea
+                    Estaria bien que implementaramos algo para que si detecta una segunda
+                    linea, la ignore para que se mantenga sobre la correcta
                 """
 
                 centroid = 0

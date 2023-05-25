@@ -36,7 +36,7 @@ if __name__ == '__main__':
     max_speed = rospy.get_param("/controller_max_speed", 0)
 
     # Subscribers
-    rospy.Subscriber("/line_centroid", Pose, callback_centroid)
+    rospy.Subscriber("/line_centroid", Float32, callback_centroid)
 
     # Publishers
     pub = rospy.Publisher("/angular_vel", Float32, queue_size=10)
