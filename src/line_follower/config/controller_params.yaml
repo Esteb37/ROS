@@ -1,5 +1,5 @@
-controller_kP :  1
-controller_kI :  0.01
+controller_kP :  0.01
+controller_kI :  0.0
 controller_kD :  0.0
-controller_max_speed : 0.3
+controller_max_speed : 0.5
 controller_Ts : 0.02
