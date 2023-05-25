@@ -8,7 +8,7 @@ import rospy
 
 class LineFollower():
 
-    LINEAR_VELOCITY = 0.5
+    LINEAR_VELOCITY = 0.1
 
     def __init__(self):
 

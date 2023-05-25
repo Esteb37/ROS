@@ -15,6 +15,7 @@ def stop():
 
 
 def callback_centroid(cent):
+    global centroid
     centroid = cent.data
 
 
@@ -42,7 +43,9 @@ if __name__ == '__main__':
     pub = rospy.Publisher("/angular_vel", Float32, queue_size=10)
 
     while not rospy.is_shutdown():
-        e[0] = centroid
+
+
+        e[0] = -centroid
 
         u[0] = K1 * e[0] + K2 * e[1] + K3 * e[2] + u[1]
 

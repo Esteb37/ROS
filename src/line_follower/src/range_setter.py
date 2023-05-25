@@ -48,7 +48,7 @@ class LightDetector():
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
         self.image_sub = rospy.Subscriber(
-            "/video_source/raw", Image, self.camera_callback)
+            "/camera/image_raw", Image, self.camera_callback)
 
         self.bridge_object = CvBridge()
         self.center_ros = Point()

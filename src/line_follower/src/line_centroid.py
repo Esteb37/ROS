@@ -32,24 +32,47 @@ class LineDetector():
 
             if self.image_received_flag == 1:
 
-                # TODO Get the centroid
-                """
-                    Hay que encontrar la linea con un filtro o algo
-                    Una vez encontrada la linea, se calcula la posicion del centroide
-                    Solo nos interesa la posicion del centroide en el eje horizontal,
-                    porque queremos centrar el robot en la linea
-                    Estaria bien que implementaramos algo para que si detecta una segunda
-                    linea, la ignore para que se mantenga sobre la correcta
-                """
+                resized = imutils.resize(self.frame, width=500)
+                resized = resized[500/3*2:500, 0:500]
 
-                centroid = 0
+                hsv = cv2.cvtColor(resized, cv2.COLOR_BGR2HSV)
+                mask = cv2.inRange(hsv, (0, 0, 0), (0,0,0))
 
-                cv2.imshow("Frame", self.frame)
+                contours = cv2.findContours(
+                    mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours = imutils.grab_contours(contours)
+
+                centroid = (0, 0)
+                if len(contours) > 0:
+                    centers = []
+                    for c in contours:
+                        M = cv2.moments(c)
+                        if M["m00"] != 0:
+                            centroid = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+                        else:
+                            centroid = (0, 0)
+                        centers.append(centroid)
+                    # find the one that is closest to the center of the image horizontally
+                    closest = centers[0]
+                    for c in centers:
+                        if abs(c[0] - 250) < abs(closest[0] - 250):
+                            closest = c
+                    centroid = closest
+
+                else:
+                    print("No line")
+
+
+                cv2.drawContours(resized, contours, -1, (0, 255, 0), 3)
+                cv2.circle(resized, centroid, 5, (0, 0, 255), -1)
+
+                cv2.imshow("Frame", resized)
+
                 image_topic = self.bridge_object.cv2_to_imgmsg(
                     self.frame, encoding="bgr8")
                 self.image_pub.publish(image_topic)
 
-                self.line_centroid_pub.publish(centroid)
+                self.line_centroid_pub.publish(float(centroid[0]-250))
 
                 self.image_received_flag = 0
 
