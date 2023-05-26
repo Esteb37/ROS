@@ -47,6 +47,7 @@ class LineDetector():
 
         ros_rate = rospy.Rate(50)
 
+        last_centroid = (250, 250)
 
         while not rospy.is_shutdown():
 
@@ -58,46 +59,56 @@ class LineDetector():
                 # gaussian blur
                 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
                 # dilate and erode
-                thresh = cv2.erode(cv2.dilate(blurred, None, iterations=2), None, iterations=2)
+                blurred = cv2.erode(cv2.dilate(blurred, None, iterations=2), None, iterations=2)
 
-                # average light on the vertical axis
-                avg = np.average(thresh, axis=0)
+                _, thresh = cv2.threshold(blurred, 150, 255, cv2.THRESH_BINARY_INV)
 
-                gradient = np.gradient(avg)
+                _, cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
-                second_derivative = np.gradient(gradient)
+                cnts = cv2.findContours(thresh.copy(), cv2.RETR_CCOMP,
+                                        cv2.CHAIN_APPROX_SIMPLE)
 
-                pos_gradient = np.where(gradient > 10, gradient, 0)
-                neg_gradient = np.where(gradient < -10, -gradient, 0)
+                cnts = imutils.grab_contours(cnts)
 
-                pos_product = pos_gradient * second_derivative
-                neg_product = neg_gradient * second_derivative
+                # filter out small contours
+                cnts = [c for c in cnts if cv2.contourArea(c) > 100]
 
-                pos_product = np.where(pos_product > 0, pos_product, 0)
-                neg_product = np.where(neg_product > 0, neg_product, 0)
-
-                pos_shifted = np.roll(pos_product, -1)
-                pos_edges = np.where(pos_shifted > pos_gradient, 1, 0)
-
-                neg_shifted = np.roll(neg_product, -1)
-                neg_edges = np.where(neg_shifted > neg_gradient, 1, 0)
-
-                pos_edges = condense_consecutive_ones(pos_edges)
-                neg_edges = condense_consecutive_ones(neg_edges)
+                centers = []
+                for c in cnts:
+                    M = cv2.moments(c)
+                    if M["m00"] != 0:
+                        centers.append((int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])))
+                    else:
+                        centers.append((0, 0))
+                for center in centers:
+                    cv2.circle(resized, center, 5, (0, 0, 255), -1)
 
 
-                cv2.imshow("output", resized)
+                # turn thresh into color image
+                thresh = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
 
-                plt.plot(pos_edges, 'ro')
-                plt.plot(neg_edges, 'bo')
-                plt.show()
+                cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 2)
+
+
+                min_dist = 100000
+                for center in centers:
+                    dist = np.linalg.norm(np.array(last_centroid) - np.array(center))
+                    if dist < min_dist:
+                        min_dist = dist
+                        min_center = center
+                last_centroid = min_center
+
+                cv2.circle(thresh, min_center, 5, (255, 0, 0), -1)
+
+                cv2.imshow("output", thresh)
+
 
 
                 image_topic = self.bridge_object.cv2_to_imgmsg(
                     self.frame, encoding="bgr8")
                 self.image_pub.publish(image_topic)
 
-                self.line_centroid_pub.publish(0)
+                self.line_centroid_pub.publish(min_center[0] - 250)
 
                 self.image_received_flag = 0
 
