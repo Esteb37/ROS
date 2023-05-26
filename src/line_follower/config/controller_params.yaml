@@ -1,4 +1,4 @@
-controller_kP :  0.01
+controller_kP :  0.001
 controller_kI :  0.0
 controller_kD :  0
 controller_max_speed : 10

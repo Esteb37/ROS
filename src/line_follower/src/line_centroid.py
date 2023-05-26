@@ -10,6 +10,24 @@ from collections import deque
 import cv2
 import imutils
 import rospy
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+def condense_consecutive_ones(arr):
+    found_one = False
+    for i in range(len(arr)):
+        if arr[i] == 1:
+            if found_one:
+                arr[i] = 0
+            else:
+                found_one = True
+        else:
+            found_one = False
+    return arr
+
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
 
 
 class LineDetector():
@@ -28,51 +46,58 @@ class LineDetector():
             "/camera/image_raw", Image, self.camera_callback)
 
         ros_rate = rospy.Rate(50)
+
+
         while not rospy.is_shutdown():
 
             if self.image_received_flag == 1:
 
-                resized = imutils.resize(self.frame, width=500)
-                resized = resized[500/3*2:500, 0:500]
+                resized = imutils.resize(self.frame, width=500)[500/3*2:500, 0:500]
+                gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
 
-                hsv = cv2.cvtColor(resized, cv2.COLOR_BGR2HSV)
-                mask = cv2.inRange(hsv, (0, 0, 0), (0,0,0))
+                # gaussian blur
+                blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+                # dilate and erode
+                thresh = cv2.erode(cv2.dilate(blurred, None, iterations=2), None, iterations=2)
 
-                contours = cv2.findContours(
-                    mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                contours = imutils.grab_contours(contours)
+                # average light on the vertical axis
+                avg = np.average(thresh, axis=0)
 
-                centroid = (0, 0)
-                if len(contours) > 0:
-                    centers = []
-                    for c in contours:
-                        M = cv2.moments(c)
-                        if M["m00"] != 0:
-                            centroid = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-                        else:
-                            centroid = (0, 0)
-                        centers.append(centroid)
-                    # find the one that is closest to the center of the image horizontally
-                    closest = centers[0]
-                    for c in centers:
-                        if abs(c[0] - 250) < abs(closest[0] - 250):
-                            closest = c
-                    centroid = closest
+                gradient = np.gradient(avg)
 
-                else:
-                    print("No line")
+                second_derivative = np.gradient(gradient)
+
+                pos_gradient = np.where(gradient > 10, gradient, 0)
+                neg_gradient = np.where(gradient < -10, -gradient, 0)
+
+                pos_product = pos_gradient * second_derivative
+                neg_product = neg_gradient * second_derivative
+
+                pos_product = np.where(pos_product > 0, pos_product, 0)
+                neg_product = np.where(neg_product > 0, neg_product, 0)
+
+                pos_shifted = np.roll(pos_product, -1)
+                pos_edges = np.where(pos_shifted > pos_gradient, 1, 0)
+
+                neg_shifted = np.roll(neg_product, -1)
+                neg_edges = np.where(neg_shifted > neg_gradient, 1, 0)
+
+                pos_edges = condense_consecutive_ones(pos_edges)
+                neg_edges = condense_consecutive_ones(neg_edges)
 
 
-                cv2.drawContours(resized, contours, -1, (0, 255, 0), 3)
-                cv2.circle(resized, centroid, 5, (0, 0, 255), -1)
+                cv2.imshow("output", resized)
 
-                cv2.imshow("Frame", resized)
+                plt.plot(pos_edges, 'ro')
+                plt.plot(neg_edges, 'bo')
+                plt.show()
+
 
                 image_topic = self.bridge_object.cv2_to_imgmsg(
                     self.frame, encoding="bgr8")
                 self.image_pub.publish(image_topic)
 
-                self.line_centroid_pub.publish(float(centroid[0]-250))
+                self.line_centroid_pub.publish(0)
 
                 self.image_received_flag = 0
 
