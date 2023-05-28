@@ -19,13 +19,13 @@ class AvoidObstacleClass():
         robot_vel.angular.z = 0.0
 
         self.dAO = 1
-        self.min_obstacle_range = 0.2
+        self.min_obstacle_range = 0.15
 
         r = rospy.Rate(10)
 
         while not rospy.is_shutdown():
-            print("closest object distance: " + str(self.closest_range) +
-                  " || theta_closest: " + str(self.closest_angle))
+            #print("closest object distance: " + str(self.closest_range) +
+                #  " || theta_closest: " + str(self.closest_angle))
 
             if self.closest_range <= self.dAO and self.closest_range > self.min_obstacle_range:
                 robot_vel.linear.x, robot_vel.angular.z = self.avoid_obstacles_controller()
@@ -41,11 +41,11 @@ class AvoidObstacleClass():
 
     def avoid_obstacles_controller(self):
 
-        theta_AO = self.closest_angle + np.pi
+        theta_AO = self.closest_angle + np.pi/2
 
         theta_AO = np.arctan2(np.sin(theta_AO), np.cos(theta_AO))
-        v = 0.3
-        kAO = 0.5
+        v = 0.1
+        kAO = 3
         w = kAO * theta_AO
         return v, w
 
@@ -54,13 +54,10 @@ class AvoidObstacleClass():
         # Ignore everything behind the robot
         # Which is the first and last quarters of the scan array
 
-        quart = len(msg.ranges)/4
-        ranges = msg.ranges[quart:3*quart]
-
         if msg.ranges:
-            self.closest_range = min(ranges)
-            idx = ranges.index(self.closest_range)
-            self.closest_angle = msg.angle_min/2 + idx * msg.angle_increment
+            self.closest_range = min(msg.ranges)
+            idx = msg.ranges.index(self.closest_range)
+            self.closest_angle = msg.angle_min + idx * msg.angle_increment
             self.closest_angle = np.arctan2(
                 np.sin(self.closest_angle), np.cos(self.closest_angle))
 

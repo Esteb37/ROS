@@ -9,9 +9,9 @@ from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
 from collections import deque
 import cv2
-import imutils
 import rospy
 import numpy as np
+
 
 class LightDetector():
     def __init__(self):
@@ -19,9 +19,14 @@ class LightDetector():
         self.traffic_light_pub = rospy.Publisher(
             "traffic_light", String, queue_size=1)
         self.image_pub = rospy.Publisher(
-            "/processed_image", Image, queue_size=1)
+            "/processed_image_traffic", Image, queue_size=1)
+
         self.image_sub = rospy.Subscriber(
+            "/camera/image_raw", Image, self.camera_callback)
+        self.image_sub_jetson = rospy.Subscriber(
             "/video_source/raw", Image, self.camera_callback)
+        self.image_sub_jetson_launch = rospy.Subscriber(
+            "/camera/video_source/raw", Image, self.camera_callback)
 
         self.bridge_object = CvBridge()
         self.center_ros = Point()
@@ -52,25 +57,34 @@ class LightDetector():
         secondRedColorUpper = tuple(rospy.get_param(
             "/secondRedColorUpper", (20, 120, 190)))
 
-        self.min_radius = rospy.get_param("/min_radius", 20)
+        self.min_radius = 120
         self.pts = deque(maxlen=64)
 
         ros_rate = rospy.Rate(50)
         while not rospy.is_shutdown():
 
             if self.image_received_flag == 1:
-                r_radius = self.find_ball(redColorLower, redColorUpper)
-                ros_rate.sleep()
-                g_radius = self.find_ball(greenColorLower, greenColorUpper)
-                y_radius = self.find_ball(yellowColorLower, yellowColorUpper)
+                # resize the.self.frame, blur it, and convert it to the HSV color space
+                self.frame = cv2.resize(self.frame, (600, 400))
+                # blurred = cv2.GaussianBlur(self.frame, (11, 11), 0)
+                median = cv2.medianBlur(self.frame, 7)
+                hsv = cv2.cvtColor(median, cv2.COLOR_BGR2HSV)
+
+                r_radius = self.find_ball(
+                    hsv, redColorLower, redColorUpper, secondRedColorLower,  secondRedColorUpper)
+
+                g_radius = self.find_ball(
+                    hsv, greenColorLower, greenColorUpper)
+                y_radius = self.find_ball(
+                    hsv, yellowColorLower, yellowColorUpper)
                 print("Red r: " + str(r_radius) + " Green r: " +
                       str(g_radius) + " Yellow r: " + str(y_radius))
 
-                cv2.imshow("Frame", self.frame)
+                # cv2.imshow("Frame", self.frame)
 
-                image_topic = self.bridge_object.cv2_to_imgmsg(
-                    self.frame, encoding="bgr8")
-                self.image_pub.publish(image_topic)
+                # image_topic = self.bridge_object.cv2_to_imgmsg(
+                #   self.frame, encoding="bgr8")
+                # self.image_pub.publish(image_topic)
 
                 self.image_received_flag = 0
 
@@ -85,7 +99,7 @@ class LightDetector():
                 else:
                     self.traffic_light_pub.publish("none")
 
-            key = cv2.waitKey(1) & 0xFF
+            key = cv2.waitKey(1)
             ros_rate.sleep()
 
     def camera_callback(self, data):
@@ -96,12 +110,7 @@ class LightDetector():
         except CvBridgeError as e:
             print(e)
 
-    def find_ball(self, colorLower, colorUpper, secondLower=None, secondUpper=None):
-        # resize the.self.frame, blur it, and convert it to the HSV color space
-        self.frame = imutils.resize(self.frame, width=600)
-        # blurred = cv2.GaussianBlur(self.frame, (11, 11), 0)
-        median = cv2.medianBlur(self.frame, 7)
-        hsv = cv2.cvtColor(median, cv2.COLOR_BGR2HSV)
+    def find_ball(self, hsv, colorLower, colorUpper, secondLower=None, secondUpper=None):
 
         # construct a mask for the color, then perform a series of dilations and
         # erosions to remove any small blobs left in the mask
@@ -111,27 +120,29 @@ class LightDetector():
             mask = cv2.bitwise_or(mask, mask2)
         mask = cv2.erode(mask, None, iterations=2)
         mask = cv2.dilate(mask, None, iterations=2)
-        cv2.imshow("mask", mask)
         gray_blurred = cv2.blur(mask, (3, 3))
+        # cv2.imshow("mask", gray_blurred)
 
-        detected_circles = cv2.HoughCircles(gray_blurred,
-                                            cv2.HOUGH_GRADIENT, 1, 20, param1=50,
-                                            param2=30, minRadius=self.min_radius, maxRadius=1000)
+        contours = cv2.findContours(
+            gray_blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        center = None
+        largest_circle = None
+        if len(contours) > 0:
+            # find the largest contour in the mask, then use
+            # it to compute the minimum enclosing circle and centroid
+            largest_circle = max(contours, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(largest_circle)
+            M = cv2.moments(largest_circle)
+            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-        if detected_circles is not None:
-            print(len(detected_circles))
-            # find the circle with the largest radius
-            largest_circle = detected_circles[0][0]
-            for circle in detected_circles[0]:
-                if circle[2] > largest_circle[2]:
-                    largest_circle = circle
-
-            x, y, radius = largest_circle
-            cv2.circle(self.frame, (x, y),
-                       radius, (0, 255, 0), 2)
-            cv2.circle(self.frame, (x, y),
+            cv2.circle(self.frame, (int(x), int(y)),
+                       int(radius), (0, 255, 0), 2)
+            cv2.circle(self.frame, (int(x), int(y)),
                        2, (0, 0, 255), 3)
-            return radius
+            if radius > self.min_radius:
+                return radius
+            else:
+                return 0
         return 0
 
     def cleanup(self):

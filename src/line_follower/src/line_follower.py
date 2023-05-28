@@ -4,11 +4,12 @@ from std_msgs.msg import Float32, Bool, String
 from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
+from time import time
 
 
 class LineFollower():
 
-    LINEAR_VELOCITY = 0.2
+    LINEAR_VELOCITY = 0.1
 
     def __init__(self):
 
@@ -42,8 +43,11 @@ class LineFollower():
 
         print("Running...")
 
+        start_time = time()
+
         while not rospy.is_shutdown():
-            self.follow_line()
+            if time()-start_time > 2:
+                self.follow_line()
             self.rate.sleep()
 
     def follow_line(self):
@@ -74,7 +78,7 @@ class LineFollower():
         """
         vel = Twist()
         vel.linear.x = linear
-        vel.angular.z = angular
+        vel.angular.z = np.clip(angular, -5, 5)
         self.cmd_vel_pub.publish(vel)
 
     def cleanup(self):

@@ -48,7 +48,7 @@ class LightDetector():
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
         self.image_sub = rospy.Subscriber(
-            "/camera/image_raw", Image, self.camera_callback)
+            "/video_source/raw", Image, self.camera_callback)
 
         self.bridge_object = CvBridge()
         self.center_ros = Point()
@@ -74,7 +74,7 @@ class LightDetector():
                 mask = cv2.inRange(hsv, (H_min, S_min, V_min),
                                    (H_max, S_max, V_max))
 
-                #mask2 = cv2.inRange(hsv, (0, 115, 0), (5, 255, 255))
+                # mask2 = cv2.inRange(hsv, (0, 115, 0), (5, 255, 255))
 
                 # mask = cv2.bitwise_or(mask, mask2)
 
