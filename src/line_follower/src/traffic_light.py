@@ -82,9 +82,8 @@ class LightDetector():
 
                 # cv2.imshow("Frame", self.frame)
 
-                # image_topic = self.bridge_object.cv2_to_imgmsg(
-                #   self.frame, encoding="bgr8")
-                # self.image_pub.publish(image_topic)
+                image_topic = self.bridge_object.cv2_to_imgmsg(   self.frame, encoding="bgr8")
+                self.image_pub.publish(image_topic)
 
                 self.image_received_flag = 0
 
