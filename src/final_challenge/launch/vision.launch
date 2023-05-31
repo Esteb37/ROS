@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<launch>
+    <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
+
+    <node name="traffic_detector" pkg="final_challenge" output="screen" type="traffic_light.py" />
+</launch>
