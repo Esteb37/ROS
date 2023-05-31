@@ -13,7 +13,7 @@ import rospy
 import numpy as np
 
 
-class LightDetector():
+class TrafficLightDetector():
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
         self.traffic_light_pub = rospy.Publisher(
@@ -151,5 +151,5 @@ class LightDetector():
 
 if __name__ == '__main__':
     rospy.init_node('light_detector', anonymous=True)
-    print("Running light detector")
-    LightDetector()
+    print("Running traffic light detector")
+    TrafficLightDetector()

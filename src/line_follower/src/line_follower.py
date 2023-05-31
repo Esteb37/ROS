@@ -9,7 +9,7 @@ from time import time
 
 class LineFollower():
 
-    LINEAR_VELOCITY = 0.1
+    LINEAR_VELOCITY = 0.3
 
     def __init__(self):
 
@@ -43,11 +43,8 @@ class LineFollower():
 
         print("Running...")
 
-        start_time = time()
-
         while not rospy.is_shutdown():
-            if time()-start_time > 2:
-                self.follow_line()
+            self.follow_line()
             self.rate.sleep()
 
     def follow_line(self):

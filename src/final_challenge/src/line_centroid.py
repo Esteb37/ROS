@@ -20,7 +20,7 @@ class LineDetector():
         self.image_received_flag = 0
 
         # The value for the threshold that will highlight black lines
-        self.line_threshold = 170
+        self.line_threshold = 100
 
         rospy.on_shutdown(self.cleanup)
         self.line_centroid_pub = rospy.Publisher(
@@ -112,15 +112,13 @@ class LineDetector():
                 # Highlight the closest centroid
                 cv2.circle(thresh, min_center, 5, (0, 0, 255), -1)
 
-                #cv2.imshow("output", thresh)
-
                 # Public the processed image to be able to view it in rqt
                 image_topic = self.bridge_object.cv2_to_imgmsg(
                     thresh, encoding="bgr8")
                 self.image_pub.publish(image_topic)
 
                 # Publish the centroid, relative to the center of the image
-                self.line_centroid_pub.publish(min_center[0] - 250)
+                self.line_centroid_pub.publish(250 - min_center[0])
 
                 self.image_received_flag = 0
 
@@ -139,11 +137,11 @@ class LineDetector():
         self.line_threshold = data.data
 
     def cleanup(self):
-        print("Shutting down vision node")
+        print("Shutting down line follower")
         cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
     rospy.init_node('line_detector', anonymous=True)
-    print("Running line detector")
+    print("Running line follower")
     LineDetector()

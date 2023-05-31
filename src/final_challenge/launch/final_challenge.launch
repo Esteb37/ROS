@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+    <rosparam file = "$(find final_challenge)/config/controller_params.yaml" command = "load"  />
+    <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
+    <node name="line_detector" output="screen" pkg="final_challenge" type="line_centroid.py" />
+    <node name="line_follower_controller" output="screen" pkg="final_challenge" type="controller.py" args="line_centroid line_angular_vel" />
+    <node name="turn_controller" pkg="final_challenge" type="controller.py" args="turn_error turn_angular_vel" />
+    <node name="traffic_light_detector" pkg="final_challenge" type="traffic_light_detector.py" />
+    <node name="main" pkg="final_challenge" type="main.py" output="screen"/>
+</launch>
