@@ -87,7 +87,7 @@ class PathFollower():
         angle = np.arctan2(dy, dx) - self.pose.orientation.z
         angle = np.arctan2(np.sin(angle), np.cos(angle))
 
-        if (len(self.data_matrix) < 3000):
+        if (len(self.data_matrix) < 1000):
             self.data_matrix.append(
                 [distance, angle, self.linear_vel, self.angular_vel])
         else:
