@@ -42,7 +42,8 @@ class SignDetector():
 
                 sign, processed_image = self.find_sign(self.frame)
 
-                image_topic = self.bridge_object.cv2_to_imgmsg(processed_image, encoding="bgr8")
+                image_topic = self.bridge_object.cv2_to_imgmsg(
+                    processed_image, encoding="bgr8")
                 self.image_pub.publish(image_topic)
 
                 if sign is not None:
@@ -50,17 +51,12 @@ class SignDetector():
 
                 self.image_received_flag = 0
 
-
             key = cv2.waitKey(1)
             ros_rate.sleep()
 
     def find_sign(self, frame):
         # Get sign
         sign = ""
-
-        # Highlight the sign
-        frame = frame.copy()
-
         return sign, frame
 
     def camera_callback(self, data):
@@ -70,7 +66,6 @@ class SignDetector():
             self.image_received_flag = 1
         except CvBridgeError as e:
             print(e)
-
 
     def cleanup(self):
         print("Shutting down sign detector node")
