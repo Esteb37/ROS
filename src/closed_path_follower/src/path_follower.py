@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
 import time
-
+import matplotlib.pyplot as plt
 
 class PathFollower():
 
@@ -63,14 +63,6 @@ class PathFollower():
             if self.follow_path():
                 break
 
-            if time.time() - print_time > 5:
-                error = np.sqrt((self.goal.position.x - self.pose.position.x)**2 + (
-                    self.goal.position.y - self.pose.position.y)**2)
-                print("Position: " + str(self.pose.position.x) +
-                      ", " + str(self.pose.position.y))
-                print("Error: " + str(error))
-                print_time = time.time()
-
             self.rate.sleep()
 
     def follow_path(self):
@@ -87,13 +79,13 @@ class PathFollower():
         angle = np.arctan2(dy, dx) - self.pose.orientation.z
         angle = np.arctan2(np.sin(angle), np.cos(angle))
 
-        if (len(self.data_matrix) < 3000):
+        if (len(self.data_matrix) < 1000):
+            print(self.linear_vel)
             self.data_matrix.append(
                 [distance, angle, self.linear_vel, self.angular_vel])
         else:
             np.save(
-                "/home/estebanp/catkin_ws/src/closed_path_follower/src/datos.npy", self.data_matrix)
-            print(self.data_matrix)
+                "/home/estebanp/fuzzy-control/anfis/anfis/datos.npy", self.data_matrix)
             return True
 
         if distance < self.DISTANCE_TOLERANCE:
@@ -104,8 +96,7 @@ class PathFollower():
                 coords = self.path[self.current_goal]
                 self.goal.position.x = coords[0]
                 self.goal.position.y = coords[1]
-            else:
-                print(len(self.data_matrix))
+
         else:
             self.publish_vel(self.linear_vel, self.angular_vel)
             self.reached_pub.publish(False)
