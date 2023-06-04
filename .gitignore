@@ -3,3 +3,5 @@ devel
 .vscode
 src/.vscode
 src/nlp_commands
+src/final_challenge/training/archive
+src/final_challenge/training/archive/Meta

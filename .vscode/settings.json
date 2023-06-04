@@ -10,4 +10,5 @@
 	"python.analysis.autoSearchPaths": true,
 	"python.linting.pylintEnabled": true,
 	"python.linting.enabled": true,
+	"git.ignoreLimitWarning": true,
 }
