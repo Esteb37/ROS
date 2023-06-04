@@ -12,6 +12,7 @@ import cv2
 import rospy
 import numpy as np
 
+
 class LineDetector():
     def __init__(self):
 
@@ -20,7 +21,7 @@ class LineDetector():
         self.image_received_flag = 0
 
         # The value for the threshold that will highlight black lines
-        self.line_threshold = 100
+        self.line_threshold = 40
 
         rospy.on_shutdown(self.cleanup)
         self.line_centroid_pub = rospy.Publisher(
@@ -72,10 +73,10 @@ class LineDetector():
                 # We use the try/except block to account for different versions of OpenCV
                 try:
                     _, cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-                                            cv2.CHAIN_APPROX_SIMPLE)
+                                                  cv2.CHAIN_APPROX_SIMPLE)
                 except:
                     cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-                                            cv2.CHAIN_APPROX_SIMPLE)
+                                               cv2.CHAIN_APPROX_SIMPLE)
 
                 # Filter out small contours
                 cnts = [c for c in cnts if cv2.contourArea(c) > 500]
@@ -89,7 +90,6 @@ class LineDetector():
                             (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])))
                     else:
                         centers.append((0, 0))
-
 
                 # Turn thresh into color image
                 thresh = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
@@ -143,5 +143,5 @@ class LineDetector():
 
 if __name__ == '__main__':
     rospy.init_node('line_detector', anonymous=True)
-    print("Running line follower")
+    print("Running line detector")
     LineDetector()

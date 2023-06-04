@@ -26,7 +26,7 @@ class Robot():
         self.heading = 0
 
         self.traffic_light_status = "none"
-        self.is_stopped = False
+        self.is_stopped = True
         self.turning = False
 
         self.init_time = rospy.get_time()
@@ -60,9 +60,11 @@ class Robot():
         rospy.Subscriber("/wl", Float32, self.wl_cb)
         rospy.Subscriber("/wr", Float32, self.wr_cb)
         rospy.Subscriber("/traffic_light", String, self.traffic_light_cb)
-        rospy.Subscriber("/line_angular_vel", Float32, self.line_angular_vel_cb)
-        rospy.Subscriber("/turn_angular_vel", Float32, self.turn_angular_vel_cb)
-        #rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
+        rospy.Subscriber("/line_angular_vel", Float32,
+                         self.line_angular_vel_cb)
+        rospy.Subscriber("/turn_angular_vel", Float32,
+                         self.turn_angular_vel_cb)
+        # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
 
     def follow_line(self):
         if self.is_stopped:
@@ -148,7 +150,6 @@ class Robot():
 
     def line_angular_vel_cb(self, msg):
         self.line_angular_vel = msg.data
-        print(msg.data)
 
     def turn_angular_vel_cb(self, msg):
         self.turn_angular_vel = msg.data
