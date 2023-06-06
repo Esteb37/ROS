@@ -3,3 +3,7 @@ devel
 .vscode
 src/.vscode
 src/nlp_commands
+/src/final_challenge/training/archive/Test
+/src/final_challenge/training/archive/Meta
+/src/final_challenge/training/archive/Test.csv
+/src/final_challenge/training/archive/Meta.csv

@@ -23,6 +23,7 @@ class Robot():
         self.crossroad = -1
         self.prev_crossroad = -1
         self.distance_time = 0
+        self.traffic_sign = "none"
 
         self.wl = 0
         self.wr = 0
@@ -106,6 +107,33 @@ class Robot():
         rospy.Subscriber("/turn_angular_vel", Float32,
                          self.turn_angular_vel_cb)
         rospy.Subscriber("/crossroad", Int32, self.crossroad_cb)
+        rospy.Subscriber("/sign", String, self.traffic_sign)
+        # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
+
+    def sign_exist(self):
+
+        if self.traffic_sign != "none":
+
+            if self.sign == "left":
+                self.turn(self, -np.pi/2)
+
+            elif self.sign == "right":
+                self.turn(self, np.pi/2)
+
+            elif self.sign == "stop":
+                self.publish_vel(0,0)
+
+            elif self.sign == "move":
+                self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
+
+            elif self.sign == "construction":
+                self.publish_vel(self.LINEAR_VELOCITY/2, self.line_angular_vel)
+
+            else:
+                self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
+
+        return self.traffic_sign
+
 
     def follow_line(self):
         if self.is_stopped:
@@ -115,6 +143,7 @@ class Robot():
             if self.traffic_light_status == "green":
                 self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
                 self.is_stopped = False
+                self.sign_exist()
 
         else:
             if self.traffic_light_status == "red":
@@ -123,6 +152,7 @@ class Robot():
 
             elif self.traffic_light_status == "yellow":
                 self.publish_vel(self.LINEAR_VELOCITY/2, self.line_angular_vel)
+                self.sign_exist()
 
             else:
                 self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)

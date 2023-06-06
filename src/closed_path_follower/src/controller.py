@@ -28,7 +28,10 @@ def callback_robot_pose(r_pose):
 
 
 def callback_goal(r_goal):
-    global x_goal, y_goal
+    global x_goal, y_goal, e, u
+    if x_goal != r_goal.position.x or y_goal != r_goal.position.y:
+        e = [0, 0, 0]
+        u = [0, 0]
     x_goal = r_goal.position.x
     y_goal = r_goal.position.y
 
