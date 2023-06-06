@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+
+# import ROS stuff
+import rospy
+from std_msgs.msg import Float32, Int32
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
+# import the necessary packages
+from collections import deque
+import cv2
+
+import rospy
+import numpy as np
+
+def find_vertical_groups(points, min_length = 4, threshold = 10):
+    """
+        Group points together if they are close to each other vertically
+    """
+    groups = []
+    for point in points:
+        for group in groups:
+            if abs(point[1] - group[0][1]) < threshold:
+                group.append(point)
+                break
+        else:
+            groups.append([point])
+
+    return [group for group in groups if len(group) >= min_length]
+
+class CrossroadDetector():
+    def __init__(self):
+
+        self.bridge_object = CvBridge()
+
+        self.image_received_flag = 0
+
+        # The value for the threshold that will highlight black lines
+        self.line_threshold = 40
+
+        rospy.on_shutdown(self.cleanup)
+
+        self.image_pub = rospy.Publisher(
+            "/processed_image_crossroad", Image, queue_size=1)
+        self.crossroad_pub = rospy.Publisher(
+            "/crossroad", Float32, queue_size=1)
+
+        # We subscribe to three topics to account for simulation, physical camera and launch file
+        self.image_sub = rospy.Subscriber(
+            "/camera/image_raw", Image, self.camera_callback)
+        self.image_sub_jetson = rospy.Subscriber(
+            "/video_source/raw", Image, self.camera_callback)
+        self.image_sub_jetson_launch = rospy.Subscriber(
+            "/camera/video_source/raw", Image, self.camera_callback)
+
+        # We can modify the threshold through a topic
+        self.threshold_sub = rospy.Subscriber(
+            "/line_threshold", Int32, self.threshold_callback)
+
+        ros_rate = rospy.Rate(50)
+
+        while not rospy.is_shutdown():
+
+            if self.image_received_flag == 1:
+
+                resized = cv2.resize(self.frame, (500, 500))
+
+                # We get the lower third of the image to remove unnecessary information
+                resized = resized[250:500, 0:500]
+
+                # Convert to grayscale
+                gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+
+                # Gaussian blurr
+                blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+                # Dilate and erode
+                blurred = cv2.erode(cv2.dilate(
+                    blurred, None, iterations=2), None, iterations=2)
+
+                # With an inverted threshold, we turn black objects white and everything else black
+                _, thresh = cv2.threshold(
+                    blurred, self.line_threshold, 255, cv2.THRESH_BINARY_INV)
+
+                # We find the contours of the lines
+                # We use the try/except block to account for different versions of OpenCV
+                try:
+                    _, cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+                                                  cv2.CHAIN_APPROX_SIMPLE)
+                except:
+                    cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+                                               cv2.CHAIN_APPROX_SIMPLE)
+
+
+                # Turn thresh into color image
+                thresh = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
+
+                # Filter out small contours
+                cnts = [c for c in cnts if cv2.contourArea(
+                    c) > 100]
+
+                # filter out tall or wide contours
+                cnts = [c for c in cnts if
+                    cv2.boundingRect(c)[3] < 100 and cv2.boundingRect(c)[2] < 150]
+
+                vertical_pos = -1
+
+                if len(cnts) >= 4:
+
+                    # Get all the centroids of the contours and draw them
+                    centers = []
+                    for c in cnts:
+                        M = cv2.moments(c)
+                        if M["m00"] != 0:
+                            centers.append(
+                                (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])))
+                        else:
+                            centers.append((0, 0))
+
+                    centers.sort(key=lambda tup: tup[1])
+
+                    groups = find_vertical_groups(centers)
+
+
+                    for group in groups:
+                        group.sort(key=lambda tup: tup[0])
+                        cv2.line(thresh, group[0], group[-1], (0, 255, 0), 5)
+
+                        vertical_position = group[0][1] + (group[-1][1] - group[0][1]) / 2
+
+                        if vertical_position > vertical_pos:
+                            vertical_pos = vertical_position
+
+                # Public the processed image to be able to view it in rqt
+                image_topic = self.bridge_object.cv2_to_imgmsg(
+                    thresh, encoding="bgr8")
+                self.image_pub.publish(image_topic)
+
+                self.crossroad_pub.publish(vertical_pos)
+
+                self.image_received_flag = 0
+
+            key = cv2.waitKey(1) & 0xFF
+            ros_rate.sleep()
+
+    def camera_callback(self, data):
+        try:
+            self.frame = self.bridge_object.imgmsg_to_cv2(
+                data, desired_encoding="bgr8")
+            self.image_received_flag = 1
+        except CvBridgeError as e:
+            print(e)
+
+    def threshold_callback(self, data):
+        self.line_threshold = data.data
+
+    def cleanup(self):
+        print("Shutting down crossroad detector")
+        cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    rospy.init_node('crossroad_detector', anonymous=True)
+    print("Running crossroad detector")
+    CrossroadDetector()
