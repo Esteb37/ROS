@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from std_msgs.msg import Float32, Bool, String
+from std_msgs.msg import Float32, Int32, String, Bool
 from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
@@ -9,7 +9,7 @@ from time import time
 
 class Robot():
 
-    LINEAR_VELOCITY = 0.5
+    LINEAR_VELOCITY = 0.2
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
@@ -20,14 +20,19 @@ class Robot():
 
         self.line_angular_vel = 0
         self.turn_angular_vel = 0
+        self.crossroad = -1
+        self.prev_crossroad = -1
+        self.distance_time = 0
 
         self.wl = 0
         self.wr = 0
         self.heading = 0
 
         self.traffic_light_status = "none"
-        self.is_stopped = True
+        self.is_stopped = False
         self.turning = False
+        self.driving = False
+        self.crossing = False
 
         self.init_time = rospy.get_time()
 
@@ -35,9 +40,42 @@ class Robot():
 
         print("Running...")
 
+                    # Turn left
+        actions = [[("drive",0.2),("turn", np.pi/2), ("drive",0.2)],
+
+                    # Cross road
+                    [("drive",0.5)]]
+
+        curr_command = 0
+        curr_action = 0
+
         while not rospy.is_shutdown():
-            self.follow_line()
+            if self.crossroad > 150 and not self.crossing:
+                self.crossing = True
+
+            if self.crossing:
+                commands = actions[curr_action]
+                command, value = commands[curr_command]
+
+                if command == "drive":
+                    if self.drive(value):
+                        curr_command += 1
+                elif command == "turn":
+                    if self.turn(value):
+                        curr_command += 1
+
+                if curr_command >= len(commands):
+                    self.crossing = False
+                    curr_command = 0
+                    curr_action += 1
+
+            else:
+                self.follow_line()
+
+            self.crossing_pub.publish(self.crossing)
             self.rate.sleep()
+
+
 
     def setup_node(self):
         rospy.on_shutdown(self.cleanup)
@@ -52,9 +90,12 @@ class Robot():
 
     def setup_publishers(self):
         self.cmd_vel_pub = rospy.Publisher(
-            '/cmd_vel', Twist, queue_size=1)
+            '/cmd_vel', Twist, queue_size=10)
         self.turn_error_pub = rospy.Publisher(
-            '/turn_error', Float32, queue_size=1)
+            '/turn_error', Float32, queue_size=10)
+        self.crossing_pub = rospy.Publisher(
+            "/crossing", Bool, queue_size = 10)
+
 
     def setup_subscribers(self):
         rospy.Subscriber("/wl", Float32, self.wl_cb)
@@ -64,7 +105,7 @@ class Robot():
                          self.line_angular_vel_cb)
         rospy.Subscriber("/turn_angular_vel", Float32,
                          self.turn_angular_vel_cb)
-        # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
+        rospy.Subscriber("/crossroad", Int32, self.crossroad_cb)
 
     def follow_line(self):
         if self.is_stopped:
@@ -85,6 +126,22 @@ class Robot():
 
             else:
                 self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
+
+    def drive(self, target):
+
+        if not self.driving:
+            self.distance_time = rospy.get_time()
+            self.driving = True
+
+        self.publish_vel(self.LINEAR_VELOCITY, 0)
+        vel = self.WHEEL_RADIUS * (self.wr+self.wl)/2
+        distance = vel * (rospy.get_time() - self.distance_time)
+
+        if distance > target:
+            self.driving = False
+            return True
+
+        return False
 
     def update_heading(self):
         """
@@ -153,6 +210,9 @@ class Robot():
 
     def turn_angular_vel_cb(self, msg):
         self.turn_angular_vel = msg.data
+
+    def crossroad_cb(self, msg):
+        self.crossroad = msg.data
 
 
 ############################### MAIN PROGRAM ####################################

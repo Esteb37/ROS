@@ -2,7 +2,7 @@
 
 # import ROS stuff
 import rospy
-from std_msgs.msg import Float32, Int32
+from std_msgs.msg import Int32
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
@@ -42,7 +42,7 @@ class CrossroadDetector():
         self.image_pub = rospy.Publisher(
             "/processed_image_crossroad", Image, queue_size=1)
         self.crossroad_pub = rospy.Publisher(
-            "/crossroad", Float32, queue_size=1)
+            "/crossroad", Int32, queue_size=10)
 
         # We subscribe to three topics to account for simulation, physical camera and launch file
         self.image_sub = rospy.Subscriber(

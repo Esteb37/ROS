@@ -2,7 +2,7 @@
 
 # import ROS stuff
 import rospy
-from std_msgs.msg import Float32, Int32
+from std_msgs.msg import Float32, Int32, Bool
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
@@ -23,6 +23,8 @@ class LineDetector():
         # The value for the threshold that will highlight black lines
         self.line_threshold = 40
 
+        self.crossing = False
+
         rospy.on_shutdown(self.cleanup)
         self.line_centroid_pub = rospy.Publisher(
             "/line_centroid", Float32, queue_size=1)
@@ -40,6 +42,10 @@ class LineDetector():
         # We can modify the threshold through a topic
         self.threshold_sub = rospy.Subscriber(
             "/line_threshold", Int32, self.threshold_callback)
+        # crossing sub
+        self.crossing_sub = rospy.Subscriber(
+            "/crossing", Bool, self.crossing_callback
+        )
 
         ros_rate = rospy.Rate(50)
 
@@ -49,7 +55,10 @@ class LineDetector():
 
         while not rospy.is_shutdown():
 
-            if self.image_received_flag == 1:
+            if self.crossing:
+                last_centroid = (250, 83)
+
+            elif self.image_received_flag == 1:
 
                 resized = cv2.resize(self.frame, (500, 500))
 
@@ -136,9 +145,13 @@ class LineDetector():
     def threshold_callback(self, data):
         self.line_threshold = data.data
 
+    def crossing_callback(self, msg):
+        self.crossing = msg.data
+
     def cleanup(self):
         print("Shutting down line follower")
         cv2.destroyAllWindows()
+
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 <launch>
     <rosparam file = "$(find final_challenge)/config/controller_params.yaml" command = "load"  />
     <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
+    <node name="crossroad_detector" pkg="final_challenge" type="crossroad.py" />
     <node name="line_detector" output="screen" pkg="final_challenge" type="line_centroid.py" />
     <node name="sign_detector" pkg="final_challenge" type="sign_detector.py" />
     <node name="line_follower_controller" output="screen" pkg="final_challenge" type="controller.py" args="line_centroid line_angular_vel" />
