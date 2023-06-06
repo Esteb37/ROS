@@ -101,6 +101,7 @@ class Robot():
             if self.traffic_light_status == "green":
                 self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
                 self.is_stopped = False
+                self.sign_exist()
 
         else:
             if self.traffic_light_status == "red":
@@ -109,6 +110,7 @@ class Robot():
 
             elif self.traffic_light_status == "yellow":
                 self.publish_vel(self.LINEAR_VELOCITY/2, self.line_angular_vel)
+                self.sign_exist()
 
             else:
                 self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
