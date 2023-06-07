@@ -8,7 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
 from collections import deque
 import cv2
-
+import sys
 import rospy
 import numpy as np
 
@@ -16,12 +16,15 @@ import numpy as np
 class LineDetector():
     def __init__(self):
 
+        self.system = sys.argv[1]
+
         self.bridge_object = CvBridge()
 
         self.image_received_flag = 0
 
         # The value for the threshold that will highlight black lines
-        self.line_threshold = 40
+        self.line_threshold = rospy.get_param(
+            "/{}_line_threshold".format(self.system), 100)
 
         self.crossing = False
 

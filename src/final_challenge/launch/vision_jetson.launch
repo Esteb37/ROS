@@ -2,6 +2,8 @@
 <launch>
     <include ns="camera" file="$(find ros_deep_learning)/launch/video_source.ros1.launch" />
     <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
-    <node name="line_detector" pkg="final_challenge" type="line_centroid.py" />
-    <node name="traffic_detector" pkg="final_challenge" type="traffic_light.py" />
+    <node name="line_detector" pkg="final_challenge" type="line_centroid.py"  args="jet"/>
+    <node name="traffic_detector" pkg="final_challenge" type="traffic_light.py" args="jet"/>
+    <node name="crossroad_detector" pkg="final_challenge" type="crossroad.py" args="jet"/>
+
 </launch>

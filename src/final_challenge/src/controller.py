@@ -29,20 +29,22 @@ if __name__ == '__main__':
         print("Usage: angular_controller.py <error_topic> <vel_topic>")
         sys.exit(1)
 
+    system = sys.argv[1]
+    error_topic = sys.argv[2]
+    vel_topic = sys.argv[3]
 
-    error_topic = sys.argv[1]
-    vel_topic = sys.argv[2]
+    prefix = "/{}_{}_controller_".format(system, error_topic)
 
-    kP = rospy.get_param("/"+error_topic+"_controller_kP", 0)
-    kI = rospy.get_param("/"+error_topic+"_controller_kI", 0)
-    kD = rospy.get_param("/"+error_topic+"_controller_kD", 0)
+    kP = rospy.get_param(prefix+"kP", 0)
+    kI = rospy.get_param(prefix+"kI", 0)
+    kD = rospy.get_param(prefix+"kD", 0)
     Ts = rospy.get_param("/controller_Ts", 0.02)
 
     K1 = kP + Ts * kI + kD / Ts
     K2 = -kP - 2.0 * kD / Ts
     K3 = kD / Ts
 
-    max_speed = rospy.get_param("/"+error_topic+"_controller_max_speed", 0)
+    max_speed = rospy.get_param(prefix+"max_speed", 0)
 
     # Subscribers
     rospy.Subscriber("/"+error_topic, Float32, callback_error)

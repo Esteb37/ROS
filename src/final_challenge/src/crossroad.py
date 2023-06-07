@@ -8,7 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
 from collections import deque
 import cv2
-
+import sys
 import rospy
 import numpy as np
 
@@ -30,12 +30,14 @@ def find_vertical_groups(points, min_length = 4, threshold = 10):
 class CrossroadDetector():
     def __init__(self):
 
+        self.system = sys.argv[1]
+
         self.bridge_object = CvBridge()
 
         self.image_received_flag = 0
 
         # The value for the threshold that will highlight black lines
-        self.line_threshold = 40
+        self.line_threshold = rospy.get_param("/{}_line_threshold".format(self.system), 100)
 
         rospy.on_shutdown(self.cleanup)
 
@@ -103,6 +105,9 @@ class CrossroadDetector():
 
                 vertical_pos = -1
 
+                # draw contours
+                cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 2)
+
                 if len(cnts) >= 4:
 
                     # Get all the centroids of the contours and draw them
@@ -115,10 +120,7 @@ class CrossroadDetector():
                         else:
                             centers.append((0, 0))
 
-                    centers.sort(key=lambda tup: tup[1])
-
-                    groups = find_vertical_groups(centers)
-
+                    groups = find_vertical_groups(centers, 4, 20)
 
                     for group in groups:
                         group.sort(key=lambda tup: tup[0])

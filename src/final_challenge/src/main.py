@@ -5,15 +5,18 @@ from geometry_msgs.msg import Twist, Pose
 import numpy as np
 import rospy
 from time import time
-
+import sys
 
 class Robot():
 
-    LINEAR_VELOCITY = 0.2
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
     def __init__(self):
+
+        self.system = sys.argv[1]
+
+        self.LINEAR_VELOCITY = rospy.get_param("/"+self.system+"_linear_velocity", 0.5)
 
         self.linear_vel = 0
         self.angular_vel = 0
@@ -42,7 +45,7 @@ class Robot():
         print("Running...")
 
                     # Turn left
-        actions = [[("drive",0.2),("turn", np.pi/2), ("drive",0.2)],
+        actions = [[("drive",0.3),("turn", np.pi/2), ("drive",0.5)],
 
                     # Cross road
                     [("drive",0.5)]]
@@ -55,6 +58,7 @@ class Robot():
                 self.crossing = True
 
             if self.crossing:
+                print("crossing")
                 commands = actions[curr_action]
                 command, value = commands[curr_command]
 
@@ -71,6 +75,7 @@ class Robot():
                     curr_action += 1
 
             else:
+                print("following")
                 self.follow_line()
 
             self.crossing_pub.publish(self.crossing)
@@ -107,7 +112,7 @@ class Robot():
         rospy.Subscriber("/turn_angular_vel", Float32,
                          self.turn_angular_vel_cb)
         rospy.Subscriber("/crossroad", Int32, self.crossroad_cb)
-        rospy.Subscriber("/sign", String, self.traffic_sign)
+        rospy.Subscriber("/sign", String, self.traffic_sign_cb)
         # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
 
     def sign_exist(self):
@@ -243,6 +248,9 @@ class Robot():
 
     def crossroad_cb(self, msg):
         self.crossroad = msg.data
+
+    def traffic_sign_cb(self, msg):
+        self.traffic_sign = msg.data
 
 
 ############################### MAIN PROGRAM ####################################

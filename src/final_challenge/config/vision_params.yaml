@@ -7,3 +7,6 @@ yellowColorUpper : [30, 255, 255]
 secondRedColorLower : [0,90,0]
 secondRedColorUpper : [20,255,255]
 min_radius : 20
+
+sim_line_threshold : 40
+jet_line_threshold : 100
