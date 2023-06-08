@@ -4,26 +4,26 @@ controller_Ts : 0.02
 
 sim_line_centroid_controller_kP :  0.011
 sim_line_centroid_controller_kI :  0.0
-sim_line_centroid_controller_kD :  30
+sim_line_centroid_controller_kD :  10
 sim_line_centroid_controller_max_speed : 10
 
-sim_turn_error_controller_kP :  1
+sim_turn_error_controller_kP :  1.5
 sim_turn_error_controller_kI :  0.0
 sim_turn_error_controller_kD :  0.0
 sim_turn_error_controller_max_speed : 2
 
-sim_linear_velocity : 0.2
+sim_linear_velocity : 0.3
 
 # ----------- Robot -----------
 
 jet_line_centroid_controller_kP :  0.01
 jet_line_centroid_controller_kI :  0.0
 jet_line_centroid_controller_kD :  0
-jet_line_centroid_controller_max_speed : 10
+jet_line_centroid_controller_max_speed : 6
 
-jet_turn_error_controller_kP :  1
+jet_turn_error_controller_kP :  1.2
 jet_turn_error_controller_kI :  0.0
 jet_turn_error_controller_kD :  0.0
-jet_turn_error_controller_max_speed : 2
+jet_turn_error_controller_max_speed : 3
 
 jet_linear_velocity : 0.2

@@ -45,10 +45,10 @@ class Robot():
         print("Running...")
 
                     # Turn left
-        actions = [[("drive",0.3),("turn", np.pi/2), ("drive",0.5)],
+        actions = [[("drive",0.35, self.LINEAR_VELOCITY),("turn", np.pi/2, 1), ("drive",0.2, self.LINEAR_VELOCITY)],
 
                     # Cross road
-                    [("drive",0.5)]]
+                    [("drive",0.5, self.LINEAR_VELOCITY)]]
 
         curr_command = 0
         curr_action = 0
@@ -58,15 +58,14 @@ class Robot():
                 self.crossing = True
 
             if self.crossing:
-                print("crossing")
                 commands = actions[curr_action]
-                command, value = commands[curr_command]
+                command, target, speed = commands[curr_command]
 
                 if command == "drive":
-                    if self.drive(value):
+                    if self.drive(target, speed):
                         curr_command += 1
                 elif command == "turn":
-                    if self.turn(value):
+                    if self.turn(target, speed):
                         curr_command += 1
 
                 if curr_command >= len(commands):
@@ -75,7 +74,6 @@ class Robot():
                     curr_action += 1
 
             else:
-                print("following")
                 self.follow_line()
 
             self.crossing_pub.publish(self.crossing)
@@ -162,13 +160,13 @@ class Robot():
             else:
                 self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
 
-    def drive(self, target):
+    def drive(self, target, speed):
 
         if not self.driving:
             self.distance_time = rospy.get_time()
             self.driving = True
 
-        self.publish_vel(self.LINEAR_VELOCITY, 0)
+        self.publish_vel(speed, 0)
         vel = self.WHEEL_RADIUS * (self.wr+self.wl)/2
         distance = vel * (rospy.get_time() - self.distance_time)
 
@@ -195,7 +193,7 @@ class Robot():
 
         self.init_time = rospy.get_time()
 
-    def turn(self, angle):
+    def turn(self, angle, speed):
         """
             Turns the robot by a given angle.
         """
@@ -205,7 +203,7 @@ class Robot():
 
         self.update_heading()
         self.turn_error_pub.publish(angle - self.heading)
-        self.publish_vel(0, self.turn_angular_vel)
+        self.publish_vel(0, self.turn_angular_vel*speed)
 
         if np.abs(angle - self.heading) < 0.1:
             self.turning = False

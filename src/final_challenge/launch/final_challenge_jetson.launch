@@ -8,5 +8,5 @@
     <node name="sign_detector" pkg="final_challenge" type="sign_detector.py" args="jet"/>
     <node name="line_follower_controller" output="screen" pkg="final_challenge" type="controller.py" args="jet line_centroid line_angular_vel"/>
     <node name="turn_controller" pkg="final_challenge" type="controller.py" args="jet turn_error turn_angular_vel"/>
-    <node name="main" pkg="final_challenge" type="main.py" output="screen" args/>
+    <node name="main" pkg="final_challenge" type="main.py" output="screen" args="jet"/>
 </launch>
