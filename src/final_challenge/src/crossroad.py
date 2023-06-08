@@ -150,19 +150,19 @@ class CrossroadDetector():
 
                 # Filter out small contours
                 cnts = [c for c in cnts if cv2.contourArea(
-                    c) > 500]
+                    c) > 400]
 
                 # filter out tall or wide contours
                 cnts = [c for c in cnts if
                     cv2.boundingRect(c)[3] < 100 and cv2.boundingRect(c)[2] < 150]
 
                 # get only rectangles
-                cnts = [c for c in cnts if cv2.boundingRect(c)[2] > 0.9 * cv2.boundingRect(c)[3]]
+                cnts = [c for c in cnts if cv2.boundingRect(c)[2] > 0.5 * cv2.boundingRect(c)[3]]
 
                 vertical_pos = -1
 
                 # draw contours
-                # cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 1)
+                cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 1)
 
                 if len(cnts) >= 4:
 
@@ -177,7 +177,7 @@ class CrossroadDetector():
                             centers.append((0, 0))
 
 
-                    groups = find_lines(centers, min_length=4, line_threshold=1, slope_threshold=5, intercept_threshold=10)
+                    groups = find_lines(centers, min_length=4, line_threshold=5, slope_threshold=10, intercept_threshold=10)
 
                     if len(groups):
                         for group in groups:

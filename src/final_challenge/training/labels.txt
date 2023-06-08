@@ -1,0 +1,1 @@
+/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/image_0045_2.jpg 276.5 185.0 39 58

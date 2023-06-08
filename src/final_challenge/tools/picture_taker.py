@@ -17,7 +17,7 @@ class Robot():
         self.linear_vel = 0
         self.angular_vel = 0
 
-        self.sign_class = "turn_right"
+        self.sign_class = "chess"
 
         self.photo_number = 99
 
@@ -41,19 +41,14 @@ class Robot():
         # This flag is to ensure we received at least one self.frame
         self.image_received_flag = 0
 
-        start_time = time()
-
-        print("Waiting for time to be set...")
-        while rospy.get_time() == 0:
-            pass
+        start_time = rospy.get_time()
 
         while not rospy.is_shutdown():
 
-            self.publish_vel(0,1)
-
-            if time() - start_time > 0.1:
+            if rospy.get_time() - start_time > 2:
+                print("Taking picture")
                 self.take_pictures()
-                start_time = time()
+                start_time = rospy.get_time()
 
             self.rate.sleep()
 
@@ -61,7 +56,7 @@ class Robot():
         if self.image_received_flag == 1 and self.frame is not None:
             # Save image
             cv2.imwrite(
-                "/home/estebanp/catkin_ws/src/final_challenge/images/" + "{0}/{0}_{1}.jpg".format(self.sign_class, self.photo_number), self.frame)
+                "/home/puzzlebot/catkin_ws/src/final_challenge/images/{0}_{1}.jpg".format(self.sign_class, self.photo_number), self.frame)
             self.photo_number += 1
             self.image_received_flag = 0
 
@@ -72,7 +67,7 @@ class Robot():
         vel = Twist()
         vel.linear.x = linear
         vel.angular.z = np.clip(angular, -5, 5)
-        self.cmd_vel_pub.publish(vel)
+        # self.cmd_vel_pub.publish(vel)
 
     def camera_callback(self, data):
         try:

@@ -49,7 +49,7 @@ class Robot():
 
         [("drive",0.2, self.LINEAR_VELOCITY),("turn", -np.pi/2, 0.8), ("drive",0.2, self.LINEAR_VELOCITY)],
                     # Cross road
-                    [("drive",0.5, self.LINEAR_VELOCITY)]]
+                    [("drive"   ,0.5, self.LINEAR_VELOCITY)]]
 
 
         curr_command = 0
