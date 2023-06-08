@@ -10,8 +10,6 @@ from cv_bridge import CvBridge, CvBridgeError
 from collections import deque
 import cv2
 import rospy
-import numpy as np
-
 
 class TrafficLightDetector():
     def __init__(self):

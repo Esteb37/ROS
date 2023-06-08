@@ -6,26 +6,75 @@ from std_msgs.msg import Int32
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 # import the necessary packages
-from collections import deque
 import cv2
 import sys
-import rospy
 import numpy as np
+import itertools
+import colorsys
 
-def find_vertical_groups(points, min_length = 4, threshold = 10):
-    """
-        Group points together if they are close to each other vertically
-    """
+def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold = 0.1, intercept_threshold = 5):
+
+    combinations = list(itertools.combinations(coordinates, min_length))
+
+    # linear regression of degree 1 for each combination
+    lines = []
+    for combination in combinations:
+        x = [c[0] for c in combination]
+        y = [c[1] for c in combination]
+        z = np.polyfit(x, y, 1)
+
+
+        # get the average error of the line
+        error = 0
+        for i in range(len(x)):
+            error += abs(y[i] - (z[0] * x[i] + z[1]))
+        error /= len(x)
+
+        # if the error is small enough, we consider it a line
+        if error < line_threshold:
+            lines.append((z[0], z[1]))
+
+    # average lines with similar slopes and intercepts
     groups = []
-    for point in points:
+    for line in lines:
+        slope = line[0]
+        intercept = line[1]
+        found = False
         for group in groups:
-            if abs(point[1] - group[0][1]) < threshold:
-                group.append(point)
+            if abs(slope - group[0]) < slope_threshold and abs(intercept - group[1]) < intercept_threshold:
+                group[0] = (group[0] + slope) / 2
+                group[1] = (group[1] + intercept) / 2
+                found = True
                 break
-        else:
-            groups.append([point])
+        if not found:
+            groups.append([slope, intercept])
 
-    return [group for group in groups if len(group) >= min_length]
+    # get the coordinates of the lines
+    lines = []
+    for group in groups:
+        x1 = 0
+        y1 = int(group[1])
+        x2 = 500
+        y2 = int(group[0] * x2 + group[1])
+        lines.append((x1, y1, x2, y2, group[0], group[1]))
+
+    return lines
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class CrossroadDetector():
     def __init__(self):
@@ -60,14 +109,18 @@ class CrossroadDetector():
 
         ros_rate = rospy.Rate(50)
 
+        WIDTH = 500
+
+        KERNEL = np.ones((5, 5), np.uint8)
+
         while not rospy.is_shutdown():
 
             if self.image_received_flag == 1:
 
-                resized = cv2.resize(self.frame, (500, 500))
+                resized = cv2.resize(self.frame, (WIDTH, WIDTH))
 
                 # We get the lower third of the image to remove unnecessary information
-                resized = resized[250:500, 0:500]
+                resized = resized[WIDTH/2:WIDTH, :WIDTH]
 
                 # Convert to grayscale
                 gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
@@ -76,7 +129,7 @@ class CrossroadDetector():
                 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
                 # Dilate and erode
                 blurred = cv2.erode(cv2.dilate(
-                    blurred, None, iterations=2), None, iterations=2)
+                    blurred, KERNEL, iterations=2), KERNEL, iterations=2)
 
                 # With an inverted threshold, we turn black objects white and everything else black
                 _, thresh = cv2.threshold(
@@ -97,16 +150,19 @@ class CrossroadDetector():
 
                 # Filter out small contours
                 cnts = [c for c in cnts if cv2.contourArea(
-                    c) > 100]
+                    c) > 500]
 
                 # filter out tall or wide contours
                 cnts = [c for c in cnts if
                     cv2.boundingRect(c)[3] < 100 and cv2.boundingRect(c)[2] < 150]
 
+                # get only rectangles
+                cnts = [c for c in cnts if cv2.boundingRect(c)[2] > 0.9 * cv2.boundingRect(c)[3]]
+
                 vertical_pos = -1
 
                 # draw contours
-                cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 2)
+                # cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 1)
 
                 if len(cnts) >= 4:
 
@@ -120,16 +176,33 @@ class CrossroadDetector():
                         else:
                             centers.append((0, 0))
 
-                    groups = find_vertical_groups(centers, 4, 20)
 
-                    for group in groups:
-                        group.sort(key=lambda tup: tup[0])
-                        cv2.line(thresh, group[0], group[-1], (0, 255, 0), 5)
+                    groups = find_lines(centers, min_length=4, line_threshold=1, slope_threshold=5, intercept_threshold=10)
 
-                        vertical_position = group[0][1] + (group[-1][1] - group[0][1]) / 2
+                    if len(groups):
+                        for group in groups:
+                            x1, y1, x2, y2, slope, _ = group
+                            cv2.line(thresh, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-                        if vertical_position > vertical_pos:
-                            vertical_pos = vertical_position
+                        # Get at most three of the most horizontal lines
+                        amount = min(3, len(groups))
+                        groups = sorted(groups, key=lambda x: x[4])[:amount]
+
+                        # get the lowest line
+                        groups = sorted(groups, key=lambda x: x[1], reverse=True)
+
+                        vertical_pos = groups[0][1]
+
+
+
+
+
+
+
+
+
+
+
 
                 # Public the processed image to be able to view it in rqt
                 image_topic = self.bridge_object.cv2_to_imgmsg(

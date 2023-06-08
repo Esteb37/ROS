@@ -53,20 +53,25 @@ class LineDetector():
         ros_rate = rospy.Rate(50)
 
         # We start by assuming that the line centroid is in the center of the image
-        # The image is of shape 500x166 (166 is a third of 500)
-        last_centroid = (250, 83)
+        WIDTH = 200
+
+        last_centroid = (WIDTH / 2, WIDTH / 6)
+
+        min_center = (WIDTH / 2, WIDTH / 6)
+
+        KERNEL = np.ones((5,5),np.uint8)
 
         while not rospy.is_shutdown():
 
             if self.crossing:
-                last_centroid = (250, 83)
+                last_centroid = (WIDTH / 2, WIDTH / 6)
 
             elif self.image_received_flag == 1:
 
-                resized = cv2.resize(self.frame, (500, 500))
+                resized = cv2.resize(self.frame, (WIDTH, WIDTH))
 
                 # We get the lower third of the image to remove unnecessary information
-                resized = resized[500/3*2:500, 0:500]
+                resized = resized[WIDTH/3*2:WIDTH, :WIDTH]
 
                 # Convert to grayscale
                 gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
@@ -75,7 +80,7 @@ class LineDetector():
                 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
                 # Dilate and erode
                 blurred = cv2.erode(cv2.dilate(
-                    blurred, None, iterations=2), None, iterations=2)
+                    blurred, KERNEL, iterations=2), KERNEL, iterations=2)
 
                 # With an inverted threshold, we turn black objects white and everything else black
                 _, thresh = cv2.threshold(
@@ -91,7 +96,7 @@ class LineDetector():
                                                cv2.CHAIN_APPROX_SIMPLE)
 
                 # Filter out small contours
-                cnts = [c for c in cnts if cv2.contourArea(c) > 500]
+                cnts = [c for c in cnts if cv2.contourArea(c) > WIDTH * 3]
 
                 # Get all the centroids of the contours and draw them
                 centers = []
@@ -109,7 +114,7 @@ class LineDetector():
                 # Draw all the contours and centroids
                 cv2.drawContours(thresh, cnts, -1, (0, 255, 0), 2)
                 for center in centers:
-                    cv2.circle(thresh, center, 5, (255, 0, 0), -1)
+                    cv2.circle(thresh, center, WIDTH / 100, (255, 0, 0), -1)
 
                 # Find the centroid that is closest to the last centroid
                 min_dist = 100000
@@ -122,7 +127,7 @@ class LineDetector():
                 last_centroid = min_center
 
                 # Highlight the closest centroid
-                cv2.circle(thresh, min_center, 5, (0, 0, 255), -1)
+                cv2.circle(thresh, min_center, WIDTH / 100, (0, 0, 255), -1)
 
                 # Public the processed image to be able to view it in rqt
                 image_topic = self.bridge_object.cv2_to_imgmsg(
@@ -130,7 +135,7 @@ class LineDetector():
                 self.image_pub.publish(image_topic)
 
                 # Publish the centroid, relative to the center of the image
-                self.line_centroid_pub.publish(250 - min_center[0])
+                self.line_centroid_pub.publish(WIDTH / 2 - min_center[0])
 
                 self.image_received_flag = 0
 
