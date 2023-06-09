@@ -12,6 +12,7 @@ import cv2
 import rospy
 import numpy as np
 
+sign_array = []
 
 class SignDetector():
     def __init__(self):
@@ -53,6 +54,28 @@ class SignDetector():
 
             key = cv2.waitKey(1)
             ros_rate.sleep()
+
+    def big_area(sign_array):
+        if len(sign_array) > 1:
+            print("More than one array received")
+            area = []
+            biggest_area = 0.0
+            sign_area_array = []
+            sign_array_send = []
+
+            for i in range(len(sign_array)):
+                data = sign_array[i, :-2]
+                area = data[0] * data[1]
+                sign_area_array.append(area)
+            
+            biggest_area = max(sign_area_array)
+            index = sign_area_array.index(biggest_area)
+            
+            sign_array_send = sign_array[index]
+
+            return sign_array_send
+        else:
+            return sign_array  
 
     def find_sign(self, frame):
         # Get sign
