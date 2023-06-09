@@ -14,6 +14,7 @@ import rospy
 import numpy as np
 
 sign_array = []
+classes = ['Forward', 'give_way', 'left', 'right', 'road_work', 'stop', 'traffic_green', 'traffic_red', 'traffic_yellow']
 
 sign_message = sign_msg()
 
@@ -76,16 +77,18 @@ class SignDetector():
             
             sign_array_send = sign_array[index]
 
-            sign_message.sign_name = sign_array_send[0]
+            sign_message.sign_name = classes[0]
             sign_message.x = sign_array_send[1]
             sign_message.y = sign_array_send[2]
             sign_message.width = sign_array_send[3]
             sign_message.height = sign_array_send[4]
 
+
+
             return sign_message
         else:
 
-            sign_message.sign_name = sign_array[0]
+            sign_message.sign_name = classes[0]
             sign_message.x = sign_array[1]
             sign_message.y = sign_array[2]
             sign_message.width = sign_array[3]
