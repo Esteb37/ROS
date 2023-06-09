@@ -6,6 +6,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from final_challenge.msg import sign_msg
 # import the necessary packages
 from collections import deque
 import cv2
@@ -13,6 +14,8 @@ import rospy
 import numpy as np
 
 sign_array = []
+
+sign_message = sign_msg()
 
 class SignDetector():
     def __init__(self):
@@ -73,9 +76,22 @@ class SignDetector():
             
             sign_array_send = sign_array[index]
 
-            return sign_array_send
+            sign_message.sign_name = sign_array_send[0]
+            sign_message.x = sign_array_send[1]
+            sign_message.y = sign_array_send[2]
+            sign_message.width = sign_array_send[3]
+            sign_message.height = sign_array_send[4]
+
+            return sign_message
         else:
-            return sign_array  
+
+            sign_message.sign_name = sign_array[0]
+            sign_message.x = sign_array[1]
+            sign_message.y = sign_array[2]
+            sign_message.width = sign_array[3]
+            sign_message.height = sign_array[4]
+
+            return sign_message  
 
     def find_sign(self, frame):
         # Get sign
