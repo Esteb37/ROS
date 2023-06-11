@@ -10,7 +10,6 @@ import cv2
 import sys
 import numpy as np
 import itertools
-import colorsys
 
 def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold = 0.1, intercept_threshold = 5):
 

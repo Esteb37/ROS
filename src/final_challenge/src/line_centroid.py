@@ -5,8 +5,6 @@ import rospy
 from std_msgs.msg import Float32, Int32, Bool
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-# import the necessary packages
-from collections import deque
 import cv2
 import sys
 import rospy

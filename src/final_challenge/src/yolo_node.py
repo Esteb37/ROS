@@ -80,8 +80,6 @@ class Robot():
 
         self.names = ["forward", "give_way", "left", "right", "road_work", "stop", "green", "red", "yellow"]
 
-
-
         time_avg = 0
         time_count = 0
 
@@ -104,16 +102,13 @@ class Robot():
                     time_count = 0
                     print_time = time.time()
 
-                empty = True
+                result = np.array([])
                 for det in self.pred:
                     for d in det:
-                        empty = False
-                        data_sender.data = d
-                        self.yolo_pub.publish(data_sender)
+                        result = np.append(result, d)
 
-                if empty:
-                    data_sender.data = []
-                    self.yolo_pub.publish(data_sender)
+                data_sender.data = result
+                self.yolo_pub.publish(data_sender)
 
                 #except Exception as e:
                     #print(e)

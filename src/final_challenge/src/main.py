@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 from std_msgs.msg import Float32, Int32, String, Bool
-from geometry_msgs.msg import Twist, Pose
+from geometry_msgs.msg import Twist
 import numpy as np
 import rospy
-from time import time
 import sys
 
 class Robot():
