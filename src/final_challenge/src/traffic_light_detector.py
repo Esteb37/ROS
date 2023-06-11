@@ -22,7 +22,7 @@ class TrafficLightDetector():
         self.yolo_matrix = []
         ros_rate = rospy.Rate(50)
 
-        categories = ["green", "red", "yellow", "none"]
+        categories = ["forward", "give_way", "left", "right", "road_work", "stop", "green", "red", "yellow", "none"]
 
         while not rospy.is_shutdown():
 
@@ -37,7 +37,7 @@ class TrafficLightDetector():
                     height = light[3] - light[1]
 
                     # Remove -6 if using the traffic light model
-                    category = categories[int(light[5] - 6)]
+                    category = categories[int(light[5])]
 
                     area = width * height
 
