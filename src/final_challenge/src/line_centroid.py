@@ -146,7 +146,7 @@ class LineDetector():
                 data, desired_encoding="bgr8")
             self.image_received_flag = 1
         except CvBridgeError as e:
-            print(e)
+            print("[LINE] ",e)
 
     def threshold_callback(self, data):
         self.line_threshold = data.data
@@ -155,12 +155,12 @@ class LineDetector():
         self.crossing = msg.data
 
     def cleanup(self):
-        print("Shutting down line follower")
+        print("[LINE]  Shutting down line follower")
         cv2.destroyAllWindows()
 
 
 
 if __name__ == '__main__':
     rospy.init_node('line_detector', anonymous=True)
-    print("Running line detector")
+    print("[LINE]  Running line detector")
     LineDetector()

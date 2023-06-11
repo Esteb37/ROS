@@ -221,13 +221,13 @@ class CrossroadDetector():
                 data, desired_encoding="bgr8")
             self.image_received_flag = 1
         except CvBridgeError as e:
-            print(e)
+            print("[CROSSROAD]",e)
 
     def threshold_callback(self, data):
         self.line_threshold = data.data
 
     def cleanup(self):
-        print("Shutting down crossroad detector")
+        print("[CROSSROAD] Shutting down crossroad detector")
         cv2.destroyAllWindows()
 
 

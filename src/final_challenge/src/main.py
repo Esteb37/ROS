@@ -38,6 +38,8 @@ class Robot():
 
     def __init__(self):
 
+        self.yolo_started = False
+
         self.linear_vel = 0
         self.angular_vel = 0
 
@@ -73,7 +75,11 @@ class Robot():
 
         self.setup_node()
 
-        print("Running...")
+        print("[MAIN]  Waiting for YOLO...")
+        while not self.yolo_started:
+            pass
+
+        print("[MAIN]  Running...")
 
         self.current_action = 0
 
@@ -102,7 +108,7 @@ class Robot():
         self.setup_subscribers()
 
         # Setup ROS node
-        print("Waiting for time to be set...")
+        print("[MAIN]  Waiting for time to be set...")
         while rospy.get_time() == 0:
             pass
 
@@ -124,6 +130,7 @@ class Robot():
                          self.turn_angular_vel_cb)
         rospy.Subscriber("/crossroad", Int32, self.crossroad_cb)
         rospy.Subscriber("/sign", detected_object, self.traffic_sign_cb)
+        rospy.Subscriber("/yolo_started", Bool, self.yolo_started_cb)
         # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
 
     def check_for_crossroad(self, crossroad, crossing):
@@ -267,7 +274,7 @@ class Robot():
         zero_vel = Twist()
         self.cmd_vel_pub.publish(zero_vel)
 
-        print("My battery is low and it's getting dark")
+        print("[MAIN]  My battery is low and it's getting dark")
 
     def wl_cb(self, wl):
         self.wl = wl.data
@@ -289,6 +296,9 @@ class Robot():
 
     def traffic_sign_cb(self, msg):
         self.traffic_sign = msg.name
+
+    def yolo_started_cb(self, msg):
+        self.yolo_started = msg.data
 
 
 ############################### MAIN PROGRAM ####################################

@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 import cv2
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Bool, Float32MultiArray
 from sensor_msgs.msg import Image
 import numpy as np
 import rospy
 import time
 import sys
 
-print("Importing yolo... ")
+print("[YOLO] Importing yolo... ")
 
 HOME = "/"+sys.path[0].split("/")[1]+"/"+sys.path[0].split("/")[2]
 PACKAGE_PATH = sys.path[0][:-3]
 
 sys.path.append(HOME+'/yolov5')
 from detection import detector
-print("Imported yolo!")
+print("[YOLO] Imported yolo!")
 
 def string_to_rgb_color(string):
     # Compute the hash value of the string
@@ -57,11 +57,15 @@ def msg_to_image(msg):
     img_data = np.frombuffer(msg.data, dtype=np.uint8).reshape((height, width, channels))
     return img_data
 
+def distance(x1, y1, x2, y2):
+    return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 class Robot():
 
     frame = None
     pred = []
+
+    tracked_objects = {}
 
     def __init__(self):
         self.WIDTH = 224
@@ -73,10 +77,11 @@ class Robot():
 
         weights = PACKAGE_PATH+"/models/best.onnx"
 
-        print("Loading network...")
+        print("[YOLO] Loading network...")
         t = time.time()
         yolo = detector(weights, 0.5)
-        print("Loaded in", time.time() - t)
+        print("[YOLO] Loaded in", time.time() - t)
+        self.yolo_started.publish(True)
 
         self.names = ["forward", "give_way", "left", "right", "road_work", "stop", "green", "red", "yellow"]
 
@@ -86,30 +91,82 @@ class Robot():
         print_time = time.time()
         data_sender = Float32MultiArray()
 
-        print("Reading... ")
+        print("[YOLO] Reading... ")
+
+
+
+        for i in range(len(self.names)):
+            self.tracked_objects[i] = []
+
         while not rospy.is_shutdown():
+
+            for key in self.tracked_objects:
+                for obj in self.tracked_objects[key]:
+                    obj["detected"] = False
+
             if self.frame is not None and self.image_received_flag == 1:
                 t = time.time()
                 #try:
 
-                self.pred = yolo.detect(self.frame)
-                # print(self.pred)
+                pred = yolo.detect(self.frame)
+
                 time_avg += time.time()-t
                 time_count += 1
 
                 if time.time() - print_time > 5:
-                    print("Latency: ", time_avg/time_count)
+                    print("[YOLO] Latency: ", time_avg/time_count)
                     time_avg = 0
                     time_count = 0
                     print_time = time.time()
 
-                result = np.array([])
-                for det in self.pred:
+                for det in pred:
                     for d in det:
-                        result = np.append(result, d)
 
-                data_sender.data = result
-                self.yolo_pub.publish(data_sender)
+                        x1, y1, x2, y2, _, key = d
+                        center_x = (x1 + x2) / 2
+                        center_y = (y1 + y2) / 2
+                        key = int(key)
+
+                        unique = True
+                        for i, obj in enumerate(self.tracked_objects[key]):
+                            unique = False
+                            self.tracked_objects[key][i] = {
+                                    "x":center_x,
+                                    "y":center_y,
+                                    "detected_frames": obj["detected_frames"] + 1,
+                                    "lost_frames":2,
+                                    "detected": True,
+                                    "d":d
+                                }
+
+                        if unique:
+                            self.tracked_objects[key].append({
+                                "x":center_x,
+                                "y":center_y,
+                                "detected_frames": 1,
+                                "lost_frames":2,
+                                "detected": True,
+                                "d":d
+                            })
+
+            result = np.array([])
+
+            for key in self.tracked_objects:
+                for obj in self.tracked_objects[key]:
+                    if obj["detected_frames"] >= 2:
+                        result = np.append(result, obj["d"])
+                        d = obj["d"]
+                        x1, y1, x2, y2, _, _ = d
+                        area = abs(x2-x1)*abs(y2-y1)
+
+
+                    if not obj["detected"]:
+                        obj["lost_frames"] -= 1
+                        if obj["lost_frames"] == 0:
+                            self.tracked_objects[key].remove(obj)
+
+            data_sender.data = result
+            self.yolo_pub.publish(data_sender)
 
 
                 #except Exception as e:
@@ -128,12 +185,16 @@ class Robot():
 
         self.image_pub = rospy.Publisher("/processed_image_yolo", Image, queue_size=1)
         self.yolo_pub = rospy.Publisher("/yolo_results", Float32MultiArray, queue_size = 100)
+        self.yolo_started = rospy.Publisher("/yolo_started", Bool, queue_size = 1)
+
+        self.yolo_started.publish(False)
 
     def camera_callback(self, data):
         #try:
         if self.frame is not None:
-            for _, det in enumerate(self.pred):
-                for d in det:
+            for key in self.tracked_objects:
+                for obj in self.tracked_objects[key]:
+                    d = obj["d"]
                     top_left = (int(d[0]), int(d[1]))
                     bottom_right = (int(d[2]), int(d[3]))
                     class_name = self.names[int(d[5])]
@@ -152,7 +213,7 @@ class Robot():
             #print(e)
 
     def cleanup(self):
-        print("Shutting down crossroad detector")
+        print("[YOLO] Shutting down YOLO node")
         cv2.destroyAllWindows()
 
 

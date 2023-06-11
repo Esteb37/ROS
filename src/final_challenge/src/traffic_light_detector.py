@@ -36,8 +36,11 @@ class TrafficLightDetector():
                     width = light[2] - light[0]
                     height = light[3] - light[1]
 
-                    # Remove -6 if using the traffic light model
-                    category = categories[int(light[5])]
+                    # Ignore signs
+                    if int(light[5]) < 6:
+                        continue
+
+                    category = categories[int(light[5] - 6)]
 
                     area = width * height
 
@@ -54,11 +57,11 @@ class TrafficLightDetector():
         self.yolo_matrix = np.reshape(flat, (-1, 6))
 
     def cleanup(self):
-        print("Shutting down traffic node")
+        print("[TRAFFIC] Shutting down traffic node")
         cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
     rospy.init_node('light_detector', anonymous=True)
-    print("Running traffic light detector")
+    print("[TRAFFIC] Running traffic light detector")
     TrafficLightDetector()

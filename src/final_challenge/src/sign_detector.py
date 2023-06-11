@@ -8,7 +8,7 @@ import numpy as np
 
 class SignDetector():
 
-    MIN_DETECTION_AREA = 1000
+    MIN_DETECTION_AREA = 800
 
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
@@ -21,7 +21,7 @@ class SignDetector():
         self.yolo_matrix = []
         ros_rate = rospy.Rate(50)
 
-        categories = ["forward", "give_way", "left", "right", "road_work", "stop", "green", "red", "yellow", "none"]
+        categories = ["forward", "give_way", "left", "right", "road_work", "stop"]
 
         while not rospy.is_shutdown():
 
@@ -35,10 +35,13 @@ class SignDetector():
                     width = sign[2] - sign[0]
                     height = sign[3] - sign[1]
 
+                    # Ignore traffic lights
+                    if int(sign[5]) > 5:
+                        continue
+
                     category = categories[int(sign[5])]
 
                     area = width * height
-                    print(category, area)
 
                     if area > self.MIN_DETECTION_AREA and area > min_area:
                         min_area = area
@@ -53,10 +56,10 @@ class SignDetector():
         self.yolo_matrix = np.reshape(flat, (-1, 6))
 
     def cleanup(self):
-        print("Shutting down sign node")
+        print("[SIGN] Shutting down sign node")
 
 
 if __name__ == '__main__':
     rospy.init_node('sign_detector', anonymous=True)
-    print("Running sign detector")
+    print("[SIGN] Running sign detector")
     SignDetector()
