@@ -2,6 +2,7 @@
 
 from std_msgs.msg import Float32, Int32, String, Bool
 from geometry_msgs.msg import Twist
+from final_challenge.msg import detected_object
 import numpy as np
 import rospy
 import sys
@@ -80,16 +81,18 @@ class Robot():
 
         while not rospy.is_shutdown():
 
-            crossing = self.check_for_crossroad(self.crossroad, crossing)
+            self.follow_line()
 
-            if crossing:
-                self.cross_road()
+            #crossing = self.check_for_crossroad(self.crossroad, crossing)
 
-            else:
-                self.check_sign()
-                self.follow_line()
+            #if crossing:
+                #self.cross_road()
 
-            self.crossing_pub.publish(self.crossing)
+            #else:
+                #self.check_sign()
+                #self.follow_line()
+
+            #self.crossing_pub.publish(self.crossing)
             self.rate.sleep()
 
     def setup_node(self):
@@ -105,22 +108,22 @@ class Robot():
 
     def setup_publishers(self):
         self.cmd_vel_pub = rospy.Publisher(
-            '/cmd_vel', Twist, queue_size = 10)
+            '/puzzlebot/cmd_vel', Twist, queue_size = 10)
         self.turn_error_pub = rospy.Publisher(
             '/turn_error', Float32, queue_size = 10)
         self.crossing_pub = rospy.Publisher(
             "/crossing", Bool, queue_size = 10)
 
     def setup_subscribers(self):
-        rospy.Subscriber("/wl", Float32, self.wl_cb)
-        rospy.Subscriber("/wr", Float32, self.wr_cb)
-        rospy.Subscriber("/traffic_light", String, self.traffic_light_cb)
+        rospy.Subscriber("/puzzlebot/wl", Float32, self.wl_cb)
+        rospy.Subscriber("/puzzlebot/wr", Float32, self.wr_cb)
+        rospy.Subscriber("/traffic_light", detected_object, self.traffic_light_cb)
         rospy.Subscriber("/line_angular_vel", Float32,
                          self.line_angular_vel_cb)
         rospy.Subscriber("/turn_angular_vel", Float32,
                          self.turn_angular_vel_cb)
         rospy.Subscriber("/crossroad", Int32, self.crossroad_cb)
-        rospy.Subscriber("/sign", String, self.traffic_sign_cb)
+        rospy.Subscriber("/sign", detected_object, self.traffic_sign_cb)
         # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
 
     def check_for_crossroad(self, crossroad, crossing):
@@ -175,7 +178,8 @@ class Robot():
 
 
     def follow_line(self):
-        if self.is_stopped:
+        self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)
+        """if self.is_stopped:
 
             self.publish_vel(0, 0)
 
@@ -194,7 +198,7 @@ class Robot():
                 self.sign_exist()
 
             else:
-                self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)
+                self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)"""
 
     def drive(self, target, speed):
 
@@ -272,7 +276,7 @@ class Robot():
         self.wr = wr.data
 
     def traffic_light_cb(self, msg):
-        self.traffic_light_status = msg.data
+        self.traffic_light_status = msg.name
 
     def line_angular_vel_cb(self, msg):
         self.line_angular_vel = msg.data
@@ -284,7 +288,7 @@ class Robot():
         self.crossroad = msg.data
 
     def traffic_sign_cb(self, msg):
-        self.traffic_sign = msg.data
+        self.traffic_sign = msg.name
 
 
 ############################### MAIN PROGRAM ####################################

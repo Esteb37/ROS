@@ -93,6 +93,7 @@ class Robot():
                 #try:
 
                 self.pred = yolo.detect(self.frame)
+                # print(self.pred)
                 time_avg += time.time()-t
                 time_count += 1
 
@@ -109,6 +110,7 @@ class Robot():
 
                 data_sender.data = result
                 self.yolo_pub.publish(data_sender)
+
 
                 #except Exception as e:
                     #print(e)

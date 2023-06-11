@@ -38,6 +38,7 @@ class SignDetector():
                     category = categories[int(sign[5])]
 
                     area = width * height
+                    print(category, area)
 
                     if area > self.MIN_DETECTION_AREA and area > min_area:
                         min_area = area
