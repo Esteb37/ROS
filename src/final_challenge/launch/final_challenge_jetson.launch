@@ -1,9 +1,13 @@
 <?xml version="1.0" ?>
 <launch>
+    <include ns="puzzlebot" file="$(find puzzlebot_autolaunch)/launch/puzzlebot_autolaunch.launch" />
 	<include ns="camera" file="$(find ros_deep_learning)/launch/video_source.ros1.launch" />
     <rosparam file = "$(find final_challenge)/config/controller_params.yaml" command = "load"  />
     <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
     <node name="crossroad_detector" pkg="final_challenge" type="crossroad.py" args="jet" />
+
+    <node name="yolo_node" output="screen" pkg="final_challenge" type="yolo_node.py"/>
+
     <node name="line_detector" output="screen" pkg="final_challenge" type="line_centroid.py" args="jet"/>
     <node name="sign_detector" pkg="final_challenge" type="sign_detector.py" args="jet"/>
     <node name="line_follower_controller" output="screen" pkg="final_challenge" type="controller.py" args="jet line_centroid line_angular_vel"/>

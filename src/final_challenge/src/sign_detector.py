@@ -71,10 +71,10 @@ class SignDetector():
                 data = sign_array[i, :-2]
                 area = data[0] * data[1]
                 sign_area_array.append(area)
-            
+
             biggest_area = max(sign_area_array)
             index = sign_area_array.index(biggest_area)
-            
+
             sign_array_send = sign_array[index]
 
             sign_message.sign_name = classes[0]
@@ -94,7 +94,7 @@ class SignDetector():
             sign_message.width = sign_array[3]
             sign_message.height = sign_array[4]
 
-            return sign_message  
+            return sign_message
 
     def find_sign(self, frame):
         # Get sign
