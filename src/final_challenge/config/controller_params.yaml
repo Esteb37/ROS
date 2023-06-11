@@ -16,8 +16,8 @@ sim_linear_velocity : 0.2
 
 # ----------- Robot -----------
 
-jet_line_centroid_controller_kP :  0.02
-jet_line_centroid_controller_kI :  0.01
+jet_line_centroid_controller_kP :  0.013
+jet_line_centroid_controller_kI :  0.0
 jet_line_centroid_controller_kD :  0.0
 jet_line_centroid_controller_max_speed : 6
 
@@ -26,4 +26,4 @@ jet_turn_error_controller_kI :  0.0
 jet_turn_error_controller_kD :  0.0
 jet_turn_error_controller_max_speed : 3
 
-jet_linear_velocity : 0.3
+jet_linear_velocity : 0.2

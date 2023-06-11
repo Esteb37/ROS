@@ -34,7 +34,9 @@ class Robot():
 
     STOP_TIME = 10
 
-    GIVE_WAY_TIME = 2
+    GIVE_WAY_TIME = 5
+
+    ROAD_WORK_TIME = 2
 
     def __init__(self):
 
@@ -63,6 +65,7 @@ class Robot():
 
         # State machine variables
         self.is_stopped = False
+        self.stop_released = True
         self.turning = False
         self.driving = False
         self.crossing = False
@@ -70,6 +73,8 @@ class Robot():
         self.stopping_time = 0
         self.giving_way = False
         self.giving_way_time = 0
+        self.road_work = False
+        self.road_work_time = 0
 
         self.init_time = rospy.get_time()
 
@@ -159,28 +164,61 @@ class Robot():
             self.current_action = 0
 
 
-    def check_sign(self):
+    def follow_line(self):
+        if self.traffic_light == "red":
+            print("[MAIN] Stopped")
+            self.is_stopped = True
+            self.publish_vel(0, 0)
 
-        if self.stopping and rospy.get_time() - self.stopping_time > self.STOP_TIME:
-            self.stopping = False
+        elif self.traffic_light == "yellow":
+            print("[MAIN] Yellow. Slowing.")
+            self.is_stopped = False
+            self.publish_vel(self.FULL_VELOCITY/2, self.line_angular_vel*2)
 
-        if self.giving_way and rospy.get_time() - self.giving_way_time > self.GIVE_WAY_TIME:
-            self.giving_way = False
+        elif self.traffic_light == "green" or (self.traffic_light == "none" and not self.is_stopped):
+            self.is_stopped = False
 
-        elif self.traffic_sign != "none":
+            if (self.traffic_sign == "stop" or self.stopping) and self.stop_released:
 
-            if self.sign == "stop" and not self.stopping:
+                if not self.stopping:
+                    print("[MAIN] Stopped started.")
+                    self.stopping_time = rospy.get_time()
                 self.stopping = True
-                self.stopping_time = rospy.get_time()
+                self.publish_vel(0, 0)
+                print("[MAIN] Stopped.")
+                if rospy.get_time() - self.stopping_time > self.STOP_TIME:
+                    self.stopping = False
+                    self.stop_released = False
+                    print("[MAIN] Stopped finished.")
 
-            elif self.sign == "give_way" and not self.giving_way:
+            elif self.traffic_sign == "give_way" or self.giving_way:
+                self.stop_released = True
+                if not self.giving_way:
+                    print("[MAIN] Give way started.")
+                    self.giving_way_time = rospy.get_time()
                 self.giving_way = True
-                self.giving_way_time = rospy.get_time()
-
-            elif self.sign == "road_work":
                 self.publish_vel(self.FULL_VELOCITY/2, self.line_angular_vel)
+                print("[MAIN] Giving way.")
+                if rospy.get_time() - self.giving_way_time > self.GIVE_WAY_TIME:
+                    print("[MAIN] Giving way finished.")
+                    self.giving_way = False
+
+            elif self.traffic_sign == "road_work" or self.road_work:
+                self.stop_released = True
+                if not self.road_work:
+                    print("[MAIN] Road work started.")
+                    self.road_work_time = rospy.get_time()
+
+                self.publish_vel(self.FULL_VELOCITY/2, self.line_angular_vel*2)
+                self.road_work = True
+
+                print("[MAIN] Slowing for work.")
+                if rospy.get_time() - self.road_work_time > self.road_work:
+                    print("[MAIN] Road work ended.")
+                    self.road_work = False
 
             else:
+                print("[MAIN] Normal speed.")
                 self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)
 
 
