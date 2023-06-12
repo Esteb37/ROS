@@ -1,7 +1,7 @@
 
 sudo apt update
 sudo apt install software-properties-common
-195  sudo add-apt-repository ppa:deadsnakes/ppa
+sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install python3.8
 python3.8 --version
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
