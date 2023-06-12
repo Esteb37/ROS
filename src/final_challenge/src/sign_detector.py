@@ -8,7 +8,7 @@ import numpy as np
 
 class SignDetector():
 
-    MIN_DETECTION_AREA = 800
+    MIN_DETECTION_AREA = 500
 
     def __init__(self):
         rospy.on_shutdown(self.cleanup)

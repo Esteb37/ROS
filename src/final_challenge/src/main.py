@@ -19,13 +19,13 @@ class Robot():
     FULL_VELOCITY = rospy.get_param("/"+SYSTEM+"_linear_velocity", 0.5)
 
     # Commands
-    TURN_RIGHT_CMD = [("drive",0.2, FULL_VELOCITY*0.8),
-                    ("turn", np.pi/2, 1),
-                    ("drive",0.2, FULL_VELOCITY*0.8)]
+    TURN_RIGHT_CMD = [("drive",0.3, FULL_VELOCITY*0.8),
+                    ("turn", -np.pi/2, 1),
+                    ("drive",0.5, FULL_VELOCITY*0.8)]
 
-    TURN_LEFT_CMD = [("drive",0.2, FULL_VELOCITY*0.8),
-                     ("turn", -np.pi/2, 1),
-                     ("drive",0.2, FULL_VELOCITY*0.8)]
+    TURN_LEFT_CMD = [("drive",0.3, FULL_VELOCITY*0.8),
+                     ("turn", np.pi/2, 1),
+                     ("drive",0.5, FULL_VELOCITY*0.8)]
 
     DRIVE_FORWARD_CMD = [("drive", 0.5, FULL_VELOCITY * 0.8)]
 
@@ -92,16 +92,11 @@ class Robot():
 
         while not rospy.is_shutdown():
 
-            self.follow_line()
-
-            #crossing = self.check_for_crossroad(self.crossroad, crossing)
-
-            #if crossing:
-                #self.cross_road()
-
-            #else:
-                #self.check_sign()
-                #self.follow_line()
+            if crossing:
+                self.cross_road()
+            else:
+                crossing = self.check_for_crossroad(self.crossroad)
+                self.follow_line()
 
             #self.crossing_pub.publish(self.crossing)
             self.rate.sleep()
@@ -138,16 +133,16 @@ class Robot():
         rospy.Subscriber("/yolo_started", Bool, self.yolo_started_cb)
         # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
 
-    def check_for_crossroad(self, crossroad, crossing):
-        return crossroad > self.CROSSROAD_OBEY_THRESHOLD and not crossing
+    def check_for_crossroad(self, crossroad):
+        return crossroad > self.CROSSROAD_OBEY_THRESHOLD
 
-    def cross(self):
+    def cross_road(self):
 
-        if self.sign == "left":
+        if self.last_valid_sign == "left":
             command = self.TURN_LEFT_CMD
-        elif self.sign == "right":
+        elif self.last_valid_sign == "right":
             command = self.TURN_RIGHT_CMD
-        elif self.sign == "forward" or self.sign == "none":
+        else:
             command = self.DRIVE_FORWARD_CMD
 
         action, target, speed = command[self.current_action]
@@ -162,6 +157,7 @@ class Robot():
         if self.current_action >= len(command):
             self.crossing = False
             self.current_action = 0
+            print("DONE")
 
 
     def follow_line(self):
@@ -218,32 +214,15 @@ class Robot():
                     self.road_work = False
 
             else:
+
+                print(self.traffic_sign)
+
+                if self.traffic_sign != "none":
+                    self.last_valid_sign = self.traffic_sign
+
                 print("[MAIN] Normal speed.")
                 self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)
 
-
-    def follow_line(self):
-        self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)
-        """if self.is_stopped:
-
-            self.publish_vel(0, 0)
-
-            if self.traffic_light_status == "green":
-                self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)
-                self.is_stopped = False
-                self.sign_exist()
-
-        else:
-            if self.traffic_light_status == "red":
-                self.publish_vel(0, 0)
-                self.is_stopped = True
-
-            elif self.traffic_light_status == "yellow":
-                self.publish_vel(self.FULL_VELOCITY/2, self.line_angular_vel)
-                self.sign_exist()
-
-            else:
-                self.publish_vel(self.FULL_VELOCITY, self.line_angular_vel)"""
 
     def drive(self, target, speed):
 
@@ -255,6 +234,7 @@ class Robot():
         vel = self.WHEEL_RADIUS * (self.wr+self.wl)/2
         distance = vel * (rospy.get_time() - self.distance_time)
 
+        print("driving", distance)
         if distance > target:
             self.driving = False
             return True
@@ -287,10 +267,15 @@ class Robot():
             self.turning = True
 
         self.update_heading()
-        self.turn_error_pub.publish(angle - self.heading)
+        print("turning", self.heading)
+
+        error = angle - self.heading
+        error = np.arctan2(np.sin(error), np.cos(error))
+
+        self.turn_error_pub.publish(error)
         self.publish_vel(0, self.turn_angular_vel*speed)
 
-        if np.abs(angle - self.heading) < 0.1:
+        if np.abs(error) < 0.1:
             self.turning = False
             return True
 
