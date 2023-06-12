@@ -9,7 +9,6 @@
     <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
 
     <!-- Artificial Intelligence -->
-    <node name="yolo_node" output="screen" pkg="final_challenge" type="yolo_node.py"/>
     <node name="sign_detector" output="screen" pkg="final_challenge" type="sign_detector.py" args="jet"/>
     <node name="traffic_light_detector" output="screen" pkg="final_challenge" type="traffic_light_detector.py" args="jet"/>
 

@@ -10,7 +10,7 @@ import numpy as np
 
 class TrafficLightDetector():
 
-    MIN_DETECTION_AREA = 1000
+    MIN_DETECTION_AREA = 700
 
     def __init__(self):
         rospy.on_shutdown(self.cleanup)
@@ -22,7 +22,7 @@ class TrafficLightDetector():
         self.yolo_matrix = []
         ros_rate = rospy.Rate(50)
 
-        categories = ["forward", "give_way", "left", "right", "road_work", "stop", "green", "red", "yellow", "none"]
+        categories = [ "green", "red", "yellow", "none"]
 
         while not rospy.is_shutdown():
 

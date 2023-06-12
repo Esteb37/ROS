@@ -19,16 +19,16 @@ class Robot():
     WHEEL_RADIUS = 0.05
 
     # ------------------- Commands -------------------
-    TURN_RIGHT_CMD = [("drive",0.2, FULL_VELOCITY*0.8),
+    TURN_RIGHT_CMD = [("drive",0.3, FULL_VELOCITY*0.8),
                     ("turn", -np.pi/2, 0.8),
                     ("drive",0.3, FULL_VELOCITY*0.8)]
     TURN_LEFT_CMD = [("drive",0.2, FULL_VELOCITY*0.8),
                      ("turn", np.pi/2, 0.8),
-                     ("drive",0.3, FULL_VELOCITY*0.8)]
+                     ("drive",0.5, FULL_VELOCITY*0.8)]
     DRIVE_FORWARD_CMD = [("drive", 0.5, FULL_VELOCITY * 0.8)]
 
     # ------------------- Obey Thresholds -------------------
-    CROSSROAD_OBEY_THRESHOLD = 150
+    CROSSROAD_OBEY_THRESHOLD = 100
     SIGN_OBEY_THRESHOLD = 800
     LIGHT_OBEY_THRESHOLD = 500
 
@@ -118,17 +118,13 @@ class Robot():
         while rospy.get_time() == 0:
             pass
 
-        self.LOG("Waiting for YOLO...")
-        while not self.yolo_started:
-            pass
-
     def setup_publishers(self):
         """
             Sets up the publishers for the node.
         """
 
         self.cmd_vel_pub = rospy.Publisher(
-            '/cmd_vel', Twist, queue_size = 10)
+            '/puzzlebot/cmd_vel', Twist, queue_size = 10)
         self.turn_error_pub = rospy.Publisher(
             '/turn_error', Float32, queue_size = 10)
         self.crossing_pub = rospy.Publisher(
@@ -139,8 +135,8 @@ class Robot():
             Sets up the subscribers for the node.
         """
 
-        rospy.Subscriber("/wl", Float32, self.wl_cb)
-        rospy.Subscriber("/wr", Float32, self.wr_cb)
+        rospy.Subscriber("/puzzlebot/wl", Float32, self.wl_cb)
+        rospy.Subscriber("/puzzlebot/wr", Float32, self.wr_cb)
         rospy.Subscriber("/traffic_light", detected_object, self.traffic_light_cb)
         rospy.Subscriber("/line_angular_vel", Float32,
                          self.line_angular_vel_cb)

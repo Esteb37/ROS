@@ -89,6 +89,7 @@ class Robot():
         time_count = 0
 
         print_time = time.time()
+        print_time = time.time()
         data_sender = Float32MultiArray()
 
         print("[YOLO] Reading... ")
@@ -134,7 +135,7 @@ class Robot():
                                     "x":center_x,
                                     "y":center_y,
                                     "detected_frames": obj["detected_frames"] + 1,
-                                    "lost_frames":2,
+                                    "lost_frames":3,
                                     "detected": True,
                                     "d":d
                                 }
@@ -144,7 +145,7 @@ class Robot():
                                 "x":center_x,
                                 "y":center_y,
                                 "detected_frames": 1,
-                                "lost_frames":2,
+                                "lost_frames":3,
                                 "detected": True,
                                 "d":d
                             })
@@ -153,7 +154,7 @@ class Robot():
 
             for key in self.tracked_objects:
                 for obj in self.tracked_objects[key]:
-                    if obj["detected_frames"] >= 2:
+                    if obj["detected_frames"] >= 3:
                         result = np.append(result, obj["d"])
                         d = obj["d"]
                         x1, y1, x2, y2, _, _ = d
