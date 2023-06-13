@@ -93,6 +93,7 @@ class Robot():
         time_count = 0
 
         print_time = time.time()
+        print_time = time.time()
         data_sender = Float32MultiArray()
 
         print("[YOLO] Reading... ")

@@ -139,17 +139,13 @@ class Robot():
         while rospy.get_time() == 0:
             pass
 
-        self.LOG("Waiting for YOLO...")
-        while not self.yolo_started:
-            pass
-
     def setup_publishers(self):
         """
             Sets up the publishers for the node.
         """
 
         self.cmd_vel_pub = rospy.Publisher(
-            '/cmd_vel', Twist, queue_size = 10)
+            '/puzzlebot/cmd_vel', Twist, queue_size = 10)
         self.turn_error_pub = rospy.Publisher(
             '/turn_error', Float32, queue_size = 10)
         self.crossing_pub = rospy.Publisher(
@@ -160,8 +156,8 @@ class Robot():
             Sets up the subscribers for the node.
         """
 
-        rospy.Subscriber("/wl", Float32, self.wl_cb)
-        rospy.Subscriber("/wr", Float32, self.wr_cb)
+        rospy.Subscriber("/puzzlebot/wl", Float32, self.wl_cb)
+        rospy.Subscriber("/puzzlebot/wr", Float32, self.wr_cb)
         rospy.Subscriber("/traffic_light", detected_object, self.traffic_light_cb)
         rospy.Subscriber("/line_angular_vel", Float32,
                          self.line_angular_vel_cb)

@@ -22,7 +22,7 @@ class TrafficLightDetector():
         self.yolo_matrix = []
         ros_rate = rospy.Rate(50)
 
-        categories = ["forward", "give_way", "left", "right", "road_work", "stop", "green", "red", "yellow", "none"]
+        categories = [ "green", "red", "yellow", "none"]
 
         while not rospy.is_shutdown():
 
