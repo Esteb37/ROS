@@ -10,7 +10,7 @@ import numpy as np
 
 class TrafficLightDetector():
 
-    MIN_DETECTION_AREA = 1000
+    MIN_DETECTION_AREA = rospy.get_param("/light_detection_area", 700)
 
     def __init__(self):
         rospy.on_shutdown(self.cleanup)

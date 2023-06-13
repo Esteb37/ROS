@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<launch>
-	<include ns="camera" file="$(find ros_deep_learning)/launch/video_source.ros1.launch" />
-    <node name="yolo_node" output="screen" pkg="final_challenge" type="yolo_node.py"/>
-    <node name="sign_detector" pkg="final_challenge" type="sign_detector.py" args="jet"/>
-    <node name="traffic_light_detector" pkg="final_challenge" type="traffic_light_detector.py" args="jet"/>
-
-</launch>

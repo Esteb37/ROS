@@ -62,13 +62,17 @@ def distance(x1, y1, x2, y2):
 
 class Robot():
 
+    GHOST_FRAME_THRESHOLD = rospy.get_param("/ghost_frame_threshold", 3)
+    CONFIDENCE_THRESHOLD = rospy.get_param("/yolo_confidence_threshold", 0.5)
+
+    WIDTH = 224
+
     frame = None
     pred = []
 
     tracked_objects = {}
 
     def __init__(self):
-        self.WIDTH = 224
 
         self.setup_node()
         self.image_received_flag = 0
@@ -92,8 +96,6 @@ class Robot():
         data_sender = Float32MultiArray()
 
         print("[YOLO] Reading... ")
-
-
 
         for i in range(len(self.names)):
             self.tracked_objects[i] = []
@@ -122,7 +124,11 @@ class Robot():
                 for det in pred:
                     for d in det:
 
-                        x1, y1, x2, y2, _, key = d
+                        x1, y1, x2, y2, confidence, key = d
+
+                        if confidence < self.CONFIDENCE_THRESHOLD:
+                            continue
+
                         center_x = (x1 + x2) / 2
                         center_y = (y1 + y2) / 2
                         key = int(key)
@@ -134,7 +140,7 @@ class Robot():
                                     "x":center_x,
                                     "y":center_y,
                                     "detected_frames": obj["detected_frames"] + 1,
-                                    "lost_frames":2,
+                                    "lost_frames": self.GHOST_FRAME_THRESHOLD,
                                     "detected": True,
                                     "d":d
                                 }
@@ -144,7 +150,7 @@ class Robot():
                                 "x":center_x,
                                 "y":center_y,
                                 "detected_frames": 1,
-                                "lost_frames":2,
+                                "lost_frames": self.GHOST_FRAME_THRESHOLD,
                                 "detected": True,
                                 "d":d
                             })
@@ -153,7 +159,7 @@ class Robot():
 
             for key in self.tracked_objects:
                 for obj in self.tracked_objects[key]:
-                    if obj["detected_frames"] >= 2:
+                    if obj["detected_frames"] >= self.GHOST_FRAME_THRESHOLD:
                         result = np.append(result, obj["d"])
                         d = obj["d"]
                         x1, y1, x2, y2, _, _ = d
@@ -198,16 +204,21 @@ class Robot():
                     top_left = (int(d[0]), int(d[1]))
                     bottom_right = (int(d[2]), int(d[3]))
                     class_name = self.names[int(d[5])]
+                    confidence = d[4]
+
+                    area = abs(bottom_right[0]-top_left[0])*abs(bottom_right[1]-top_left[1])
 
                     color_hash = string_to_rgb_color(class_name)
 
                     cv2.rectangle(self.frame, top_left, bottom_right, color_hash, 2)
-                    cv2.putText(self.frame, class_name,bottom_right,cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash,1)
+                    cv2.putText(self.frame, class_name + " " + str(confidence), (top_left[0], top_left[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash, 2)
+                    cv2.putText(self.frame, str(area), (bottom_right[0], bottom_right[1]+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash, 2)
+
 
             self.image_pub.publish(image_to_msg(self.frame))
 
         img = msg_to_image(data)
-        self.frame = cv2.resize(img, (224, 224))
+        self.frame = cv2.resize(img, (self.WIDTH, self.WIDTH))
         self.image_received_flag = 1
         #except Exception as e:
             #print(e)

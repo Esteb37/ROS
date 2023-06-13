@@ -18,19 +18,40 @@ class Robot():
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
+    FIRST_DRIVE_DISTANCE = rospy.get_param("/first_drive_distance", 0.2)
+    SECOND_DRIVE_DISTANCE = rospy.get_param("/second_drive_distance", 0.3)
+    CROSS_DRIVE_DISTANCE = rospy.get_param("/cross_drive_distance", 0.5)
+
     # ------------------- Commands -------------------
-    TURN_RIGHT_CMD = [("drive",0.2, FULL_VELOCITY*0.8),
-                    ("turn", -np.pi/2, 0.8),
-                    ("drive",0.3, FULL_VELOCITY*0.8)]
-    TURN_LEFT_CMD = [("drive",0.2, FULL_VELOCITY*0.8),
-                     ("turn", np.pi/2, 0.8),
-                     ("drive",0.3, FULL_VELOCITY*0.8)]
-    DRIVE_FORWARD_CMD = [("drive", 0.5, FULL_VELOCITY * 0.8)]
+    TURN_RIGHT_CMD = [("drive",
+                       FIRST_DRIVE_DISTANCE,
+                       FULL_VELOCITY),
+
+                        ("turn", -np.pi/2, 0.8),
+
+                        ("drive",
+                          SECOND_DRIVE_DISTANCE,
+                          FULL_VELOCITY)]
+
+
+    TURN_LEFT_CMD = [("drive",
+                        FIRST_DRIVE_DISTANCE,
+                        FULL_VELOCITY),
+
+                         ("turn", np.pi/2, 0.8),
+
+                         ("drive",
+                        SECOND_DRIVE_DISTANCE,
+                        FULL_VELOCITY)]
+
+    DRIVE_FORWARD_CMD = [("drive",
+                            CROSS_DRIVE_DISTANCE,
+                            FULL_VELOCITY)]
 
     # ------------------- Obey Thresholds -------------------
-    CROSSROAD_OBEY_THRESHOLD = 150
-    SIGN_OBEY_THRESHOLD = 800
-    LIGHT_OBEY_THRESHOLD = 500
+    CROSSROAD_OBEY_THRESHOLD = rospy.get_param("/crossroad_obey_threshold", 80)
+    SIGN_OBEY_THRESHOLD = rospy.get_param("/sign_obey_threshold", 800)
+    LIGHT_OBEY_THRESHOLD = rospy.get_param("/light_obey_threshold", 500)
 
     # ------------------- Timeouts -------------------
     STOP_TIME = 10

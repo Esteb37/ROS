@@ -2,7 +2,7 @@
 <launch>
     <!-- Parameters-->
     <rosparam file = "$(find final_challenge)/config/controller_params.yaml" command = "load"  />
-    <rosparam file = "$(find final_challenge)/config/vision_params.yaml" command = "load"  />
+    <rosparam file = "$(find final_challenge)/config/thresholds.yaml" command = "load"  />
 
     <!-- Artificial Intelligence -->
     <!--<node name="yolo_node" output="screen" pkg="final_challenge" type="yolo_node.py"/>
