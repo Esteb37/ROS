@@ -1,0 +1,12 @@
+# Line binary threshold
+sim_line_threshold : 40
+jet_line_threshold : 90
+
+sign_detection_area : 500
+light_detection_area : 700
+ghost_frame_threshold : 2
+crossroad_obey_threshold : 80
+sign_obey_threshold : 800
+light_obey_threshold : 700
+
+yolo_confidence_threshold : 0.5

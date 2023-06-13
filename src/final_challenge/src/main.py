@@ -1,170 +1,268 @@
 #!/usr/bin/env python
 
 from std_msgs.msg import Float32, Int32, String, Bool
-from geometry_msgs.msg import Twist, Pose
+from geometry_msgs.msg import Twist
+from final_challenge.msg import detected_object
 import numpy as np
 import rospy
-from time import time
 import sys
 
 class Robot():
 
+    # Simulation or Jetson
+    SYSTEM = sys.argv[1]
+
+    FULL_VELOCITY = rospy.get_param("/"+SYSTEM+"_linear_velocity", 0.5)
+
+    # ------------------- Odometry -------------------
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
+    FIRST_DRIVE_DISTANCE = rospy.get_param("/first_drive_distance", 0.2)
+    SECOND_DRIVE_DISTANCE = rospy.get_param("/second_drive_distance", 0.3)
+    CROSS_DRIVE_DISTANCE = rospy.get_param("/cross_drive_distance", 0.5)
+
+    # ------------------- Commands -------------------
+    TURN_RIGHT_CMD = [("drive",
+                       FIRST_DRIVE_DISTANCE,
+                       FULL_VELOCITY),
+
+                        ("turn", -np.pi/2, 0.8),
+
+                        ("drive",
+                          SECOND_DRIVE_DISTANCE,
+                          FULL_VELOCITY)]
+
+
+    TURN_LEFT_CMD = [("drive",
+                        FIRST_DRIVE_DISTANCE,
+                        FULL_VELOCITY),
+
+                         ("turn", np.pi/2, 0.8),
+
+                         ("drive",
+                        SECOND_DRIVE_DISTANCE,
+                        FULL_VELOCITY)]
+
+    DRIVE_FORWARD_CMD = [("drive",
+                            CROSS_DRIVE_DISTANCE,
+                            FULL_VELOCITY)]
+
+    # ------------------- Obey Thresholds -------------------
+    CROSSROAD_OBEY_THRESHOLD = rospy.get_param("/crossroad_obey_threshold", 80)
+    SIGN_OBEY_THRESHOLD = rospy.get_param("/sign_obey_threshold", 800)
+    LIGHT_OBEY_THRESHOLD = rospy.get_param("/light_obey_threshold", 500)
+
+    # ------------------- Timeouts -------------------
+    STOP_TIME = 10
+    GIVE_WAY_TIME = 5
+    ROAD_WORK_TIME = 2
+
+    LOGGING = True
+
     def __init__(self):
 
-        self.system = sys.argv[1]
+        # YOLO started
+        self.yolo_started = False
 
-        self.LINEAR_VELOCITY = rospy.get_param("/"+self.system+"_linear_velocity", 0.5)
-
-        self.linear_vel = 0
-        self.angular_vel = 0
-
+        # Angular control velocities
         self.line_angular_vel = 0
         self.turn_angular_vel = 0
-        self.crossroad = -1
-        self.prev_crossroad = -1
-        self.distance_time = 0
-        self.traffic_sign = "none"
 
+        # Crossroad detection
+        self.crossroad = -1
+
+        # Road detections
+        self.traffic_sign = detected_object("none", 0)
+        self.action_sign = detected_object("none", 0)
+        self.traffic_light = detected_object("none", 0)
+        self.last_sign = detected_object("none", 0)
+
+        # Odometry variables
         self.wl = 0
         self.wr = 0
         self.heading = 0
+        self.distance_time = 0
+        self.init_time = rospy.get_time()
+        self.current_action = 0
 
-        self.traffic_light_status = "none"
-        self.is_stopped = False
+        # State machine states
         self.turning = False
         self.driving = False
         self.crossing = False
+        self.stopping = False
+        self.giving_way = False
+        self.road_working = False
 
-        self.init_time = rospy.get_time()
+        # State machine times
+        self.giving_way_time = 0
+        self.road_work_time = 0
+        self.stopping_time = 0
 
         self.setup_node()
 
-        print("Running...")
-
-                    # Turn left
-        actions = [[("drive",0.2, self.LINEAR_VELOCITY),("turn", np.pi/2, 1), ("drive",0.2, self.LINEAR_VELOCITY)],
-
-        [("drive",0.2, self.LINEAR_VELOCITY),("turn", -np.pi/2, 0.8), ("drive",0.2, self.LINEAR_VELOCITY)],
-                    # Cross road
-                    [("drive"   ,0.5, self.LINEAR_VELOCITY)]]
-
-
-        curr_command = 0
-        curr_action = 0
+        self.LOG("Running...")
 
         while not rospy.is_shutdown():
-            if self.crossroad > 150 and not self.crossing:
-                self.crossing = True
 
             if self.crossing:
-                commands = actions[curr_action]
-                command, target, speed = commands[curr_command]
-
-                if command == "drive":
-                    if self.drive(target, speed):
-                        curr_command += 1
-                elif command == "turn":
-                    if self.turn(target, speed):
-                        curr_command += 1
-
-                if curr_command >= len(commands):
-                    self.crossing = False
-                    curr_command = 0
-                    curr_action += 1
+                self.LOG("Crossing")
+                self.cross_road()
 
             else:
-                self.follow_line()
+                # Check if we are close to a crossroad
+                self.crossing = self.crossroad > self.CROSSROAD_OBEY_THRESHOLD
 
+                # Get the velocities according to the traffic signs and lights
+                (linear_vel, angular_vel) = self.obey_traffic()
+                self.publish_vel(linear_vel, angular_vel)
+
+            # Tell the line follower that we are crossing
+            # So it can stop tracking the line
             self.crossing_pub.publish(self.crossing)
             self.rate.sleep()
 
 
-
     def setup_node(self):
-        rospy.on_shutdown(self.cleanup)
+        """
+            Sets up the ROS node, publishers and subscribers.
+            Waits for simulation time and YOLO before starting.
+        """
+
         self.rate = rospy.Rate(50)
+        rospy.on_shutdown(self.cleanup)
         self.setup_publishers()
         self.setup_subscribers()
 
         # Setup ROS node
-        print("Waiting for time to be set...")
+        self.LOG("Waiting for time to be set...")
         while rospy.get_time() == 0:
             pass
 
     def setup_publishers(self):
+        """
+            Sets up the publishers for the node.
+        """
+
         self.cmd_vel_pub = rospy.Publisher(
-            '/cmd_vel', Twist, queue_size=10)
+            '/puzzlebot/cmd_vel', Twist, queue_size = 10)
         self.turn_error_pub = rospy.Publisher(
-            '/turn_error', Float32, queue_size=10)
+            '/turn_error', Float32, queue_size = 10)
         self.crossing_pub = rospy.Publisher(
             "/crossing", Bool, queue_size = 10)
 
-
     def setup_subscribers(self):
-        rospy.Subscriber("/wl", Float32, self.wl_cb)
-        rospy.Subscriber("/wr", Float32, self.wr_cb)
-        rospy.Subscriber("/traffic_light", String, self.traffic_light_cb)
+        """
+            Sets up the subscribers for the node.
+        """
+
+        rospy.Subscriber("/puzzlebot/wl", Float32, self.wl_cb)
+        rospy.Subscriber("/puzzlebot/wr", Float32, self.wr_cb)
+        rospy.Subscriber("/traffic_light", detected_object, self.traffic_light_cb)
         rospy.Subscriber("/line_angular_vel", Float32,
                          self.line_angular_vel_cb)
         rospy.Subscriber("/turn_angular_vel", Float32,
                          self.turn_angular_vel_cb)
         rospy.Subscriber("/crossroad", Int32, self.crossroad_cb)
-        rospy.Subscriber("/sign", String, self.traffic_sign_cb)
-        # rospy.Subscriber("/linear_vel", Float32, self.linear_vel_cb)
+        rospy.Subscriber("/sign", detected_object, self.traffic_sign_cb)
+        rospy.Subscriber("/yolo_started", Bool, self.yolo_started_cb)
 
-    def sign_exist(self):
+    # ---------------------- Control Methods ----------------------
+    def cross_road(self):
+        """
+            Executes a series of actions to cross the crossroad, according to the
+            last traffic sign.
+        """
 
-        if self.traffic_sign != "none":
-
-            if self.sign == "left":
-                self.turn(self, -np.pi/2)
-
-            elif self.sign == "right":
-                self.turn(self, np.pi/2)
-
-            elif self.sign == "stop":
-                self.publish_vel(0,0)
-
-            elif self.sign == "move":
-                self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
-
-            elif self.sign == "construction":
-                self.publish_vel(self.LINEAR_VELOCITY/2, self.line_angular_vel)
-
-            else:
-                self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
-
-        return self.traffic_sign
-
-
-    def follow_line(self):
-        if self.is_stopped:
-
-            self.publish_vel(0, 0)
-
-            if self.traffic_light_status == "green":
-                self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
-                self.is_stopped = False
-                self.sign_exist()
-
+        if self.action_sign.name == "left":
+            command = self.TURN_LEFT_CMD
+        elif self.action_sign.name == "right":
+            command = self.TURN_RIGHT_CMD
         else:
-            if self.traffic_light_status == "red":
-                self.publish_vel(0, 0)
-                self.is_stopped = True
+            command = self.DRIVE_FORWARD_CMD
 
-            elif self.traffic_light_status == "yellow":
-                self.publish_vel(self.LINEAR_VELOCITY/2, self.line_angular_vel)
-                self.sign_exist()
+        action, target, speed = command[self.current_action]
 
-            else:
-                self.publish_vel(self.LINEAR_VELOCITY, self.line_angular_vel)
+        if action == "drive":
+            if self.drive(target, speed):
+                self.current_action += 1
+        elif action == "turn":
+            if self.turn(target, speed):
+                self.current_action += 1
 
+        if self.current_action >= len(command):
+            self.crossing = False
+            self.current_action = 0
+            self.LOG("Done crossing")
+
+    def obey_traffic(self):
+        """
+            Returns the linear and angular velocities according to the traffic
+            signs and lights.
+        """
+
+        if self.light_is("red"):
+            self.LOG("Stopped at red")
+            return (0, 0)
+
+        if self.light_is("yellow"):
+            self.LOG("Slowing at yellow.")
+            return (self.FULL_VELOCITY / 2, self.line_angular_vel)
+
+        if self.sign_is("stop") and not self.stopping and self.stop_released:
+            self.LOG("Stopped at sign.")
+            self.stopping_time = rospy.get_time()
+            self.stopping = True
+
+        if self.stopping:
+            if rospy.get_time() - self.stopping_time > self.STOP_TIME:
+                self.stopping = False
+                self.stop_released = False
+                self.LOG("Stopped finished.")
+            return (0, 0)
+
+        if not self.sign_is("stop"):
+            self.stop_released = True
+
+        if self.sign_is("give_way") and not self.giving_way:
+            self.LOG("Giving way.")
+            self.giving_way_time = rospy.get_time()
+            self.giving_way = True
+
+        if self.giving_way:
+            if rospy.get_time() - self.giving_way_time > self.GIVE_WAY_TIME:
+                self.giving_way = False
+                self.LOG("Giving way finished.")
+            return (self.FULL_VELOCITY / 2, self.line_angular_vel)
+
+        if self.sign_is("road_work") and not self.road_working:
+            self.LOG("Slowing for work.")
+            self.road_work_time = rospy.get_time()
+            self.road_working = True
+
+        if self.road_working:
+            if rospy.get_time() - self.road_work_time > self.road_working:
+                self.road_working = False
+                self.LOG("Road work finished.")
+            return (self.FULL_VELOCITY / 2, self.line_angular_vel)
+
+        if (self.sign_is("right", min_area = 500)
+            or self.sign_is("left", min_area = 500)
+            or self.sign_is("forward", min_area = 500)):
+
+            self.action_sign = self.traffic_sign
+
+        return (self.FULL_VELOCITY, self.line_angular_vel)
+
+
+    # ---------------------- Commands ----------------------
     def drive(self, target, speed):
+        """
+            Drives the robot forward by a given distance.
+        """
 
         if not self.driving:
+            self.LOG("Driving forward for {}m".format(target))
             self.distance_time = rospy.get_time()
             self.driving = True
 
@@ -177,6 +275,56 @@ class Robot():
             return True
 
         return False
+
+    def turn(self, angle, speed):
+        """
+            Turns the robot by a given angle.
+        """
+
+        if not self.turning:
+            self.LOG("Turning {} rads".format(angle))
+            self.heading = 0
+            self.turning = True
+
+        self.update_heading()
+
+        error = angle - self.heading
+        error = np.arctan2(np.sin(error), np.cos(error))
+
+        self.turn_error_pub.publish(error)
+        self.publish_vel(0, self.turn_angular_vel*speed)
+
+        if np.abs(error) < 0.05:
+            self.turning = False
+            return True
+
+        return False
+
+    # ---------------------- Helper Methods ----------------------
+    def LOG(self, msg):
+        """
+            Prints a tagged message if logging is enabled
+        """
+
+        if self.LOGGING:
+            print("[MAIN] " + msg)
+
+    def cleanup(self):
+        """
+            Stops the robot when the program is interrupted.
+        """
+
+        self.publish_vel(0, 0)
+        self.LOG("My battery is low and it's getting dark")
+
+    def publish_vel(self, linear, angular):
+        """
+            Sends a velocity command to the robot through the cmd_vel topic.
+        """
+        vel = Twist()
+        vel.linear.x = linear
+        vel.angular.z = np.clip(angular, -5, 5)
+        self.cmd_vel_pub.publish(vel)
 
     def update_heading(self):
         """
@@ -195,50 +343,31 @@ class Robot():
 
         self.init_time = rospy.get_time()
 
-    def turn(self, angle, speed):
+    def sign_is(self, sign, min_area = SIGN_OBEY_THRESHOLD):
         """
-            Turns the robot by a given angle.
+            Checks if the current sign is the given sign and if it is big enough. Ensures that the same sign is not detected twice.
         """
-        if not self.turning:
-            self.heading = 0
-            self.turning = True
 
-        self.update_heading()
-        self.turn_error_pub.publish(angle - self.heading)
-        self.publish_vel(0, self.turn_angular_vel*speed)
+        is_sign = (self.traffic_sign.name == sign
+                and self.traffic_sign.area > min_area
+                and self.traffic_sign.name != self.last_sign.name)
+        if is_sign:
+            self.last_sign = self.traffic_sign
+        return is_sign
 
-        if np.abs(angle - self.heading) < 0.1:
-            self.turning = False
-            return True
-
-        return False
-
-    def publish_vel(self, linear, angular):
+    def light_is(self, light, min_area = LIGHT_OBEY_THRESHOLD):
         """
-            Sends a velocity command to the robot through the cmd_vel topic.
+            Checks if the current light is the given light andif it is big enough
         """
-        vel = Twist()
-        vel.linear.x = linear
-        vel.angular.z = np.clip(angular, -5, 5)
-        self.cmd_vel_pub.publish(vel)
 
-    def cleanup(self):
-        """
-            Stops the robot when the program is interrupted.
-        """
-        zero_vel = Twist()
-        self.cmd_vel_pub.publish(zero_vel)
+        return self.traffic_light.name == light and self.traffic_light.area > min_area
 
-        print("My battery is low and it's getting dark")
-
+    # ---------------------- Callback Methods ----------------------
     def wl_cb(self, wl):
         self.wl = wl.data
 
     def wr_cb(self, wr):
         self.wr = wr.data
-
-    def traffic_light_cb(self, msg):
-        self.traffic_light_status = msg.data
 
     def line_angular_vel_cb(self, msg):
         self.line_angular_vel = msg.data
@@ -250,10 +379,15 @@ class Robot():
         self.crossroad = msg.data
 
     def traffic_sign_cb(self, msg):
-        self.traffic_sign = msg.data
+        self.traffic_sign = msg
+
+    def traffic_light_cb(self, msg):
+        self.traffic_light = msg
+
+    def yolo_started_cb(self, msg):
+        self.yolo_started = msg.data
 
 
-############################### MAIN PROGRAM ####################################
 if __name__ == "__main__":
     rospy.init_node("final_challenge", anonymous=True)
     Robot()

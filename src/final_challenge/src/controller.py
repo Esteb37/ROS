@@ -11,7 +11,7 @@ u = [0, 0]
 error = 0
 
 def stop():
-    print("Stopping...")
+    print("CONTROLLER: Stopping...")
 
 
 def callback_error(err):
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(50)
 
     if len(sys.argv) < 3:
-        print("Usage: angular_controller.py <error_topic> <vel_topic>")
+        print("CONTROLLER: Usage: angular_controller.py <error_topic> <vel_topic>")
         sys.exit(1)
 
     system = sys.argv[1]

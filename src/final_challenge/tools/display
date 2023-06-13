@@ -1,0 +1,1 @@
+gnome-terminal --tab -e "rqt_image_view /processed_image_line" --tab -e "rqt_image_view /processed_image_crossroad" --tab -e "rqt_image_view /processed_image_yolo" \

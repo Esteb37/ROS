@@ -1,1 +1,0 @@
-rsync -av --exclude='training' '~/catkin_ws/src/final_challenge' jetson:/catkin_ws/src

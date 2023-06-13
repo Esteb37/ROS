@@ -1,6 +1,0 @@
-/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/image_0045_2.jpg 278.5 183.5 37 55
-/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/image_St_OnL_50cm64.jpg 255.0 155.0 50 90
-/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/image_0095.jpg 390.5 162.0 47 68
-/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/stop_semidark20cm_7.jpg 212.0 168.5 32 51
-/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/image_St_OnL_25cm8.jpg 70.0 201.0 110 180
-/home/estebanp/catkin_ws/src/final_challenge/training/images_resized/stop/image_St_OnL_50cm74.jpg 302.0 146.5 56 93

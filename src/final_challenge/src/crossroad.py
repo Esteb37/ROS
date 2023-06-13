@@ -10,7 +10,6 @@ import cv2
 import sys
 import numpy as np
 import itertools
-import colorsys
 
 def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold = 0.1, intercept_threshold = 5):
 
@@ -59,22 +58,6 @@ def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold 
         lines.append((x1, y1, x2, y2, group[0], group[1]))
 
     return lines
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class CrossroadDetector():
     def __init__(self):
@@ -180,28 +163,15 @@ class CrossroadDetector():
                     groups = find_lines(centers, min_length=4, line_threshold=5, slope_threshold=10, intercept_threshold=10)
 
                     if len(groups):
-                        for group in groups:
-                            x1, y1, x2, y2, slope, _ = group
-                            cv2.line(thresh, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-                        # Get at most three of the most horizontal lines
-                        amount = min(3, len(groups))
-                        groups = sorted(groups, key=lambda x: x[4])[:amount]
 
                         # get the lowest line
-                        groups = sorted(groups, key=lambda x: x[1], reverse=True)
+                        lowest = sorted(groups, key=lambda x: x[1], reverse=True)[0]
+                        x1, y1, x2, y2, _, _ = lowest
+                        cv2.line(thresh, (x1, y1), (x2, y2), (0, 0, 255), 4)
+                        vertical_pos = int((y1 + y2) / 2)
 
-                        vertical_pos = groups[0][1]
-
-
-
-
-
-
-
-
-
-
+                        cv2.putText(thresh, str(vertical_pos), (vertical_pos, 50),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
 
                 # Public the processed image to be able to view it in rqt
@@ -222,13 +192,13 @@ class CrossroadDetector():
                 data, desired_encoding="bgr8")
             self.image_received_flag = 1
         except CvBridgeError as e:
-            print(e)
+            print("[CROSSROAD]",e)
 
     def threshold_callback(self, data):
         self.line_threshold = data.data
 
     def cleanup(self):
-        print("Shutting down crossroad detector")
+        print("[CROSSROAD] Shutting down crossroad detector")
         cv2.destroyAllWindows()
 
 
