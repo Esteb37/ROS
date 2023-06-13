@@ -12,46 +12,10 @@ class Robot():
     # Simulation or Jetson
     SYSTEM = sys.argv[1]
 
-    FULL_VELOCITY = rospy.get_param("/"+SYSTEM+"_linear_velocity", 0.5)
-
     # ------------------- Odometry -------------------
     TRACK_WIDTH = 0.19
     WHEEL_RADIUS = 0.05
 
-    FIRST_DRIVE_DISTANCE = rospy.get_param("/first_drive_distance", 0.2)
-    SECOND_DRIVE_DISTANCE = rospy.get_param("/second_drive_distance", 0.3)
-    CROSS_DRIVE_DISTANCE = rospy.get_param("/cross_drive_distance", 0.5)
-
-    # ------------------- Commands -------------------
-    TURN_RIGHT_CMD = [("drive",
-                       FIRST_DRIVE_DISTANCE,
-                       FULL_VELOCITY),
-
-                        ("turn", -np.pi/2, 0.8),
-
-                        ("drive",
-                          SECOND_DRIVE_DISTANCE,
-                          FULL_VELOCITY)]
-
-
-    TURN_LEFT_CMD = [("drive",
-                        FIRST_DRIVE_DISTANCE,
-                        FULL_VELOCITY),
-
-                         ("turn", np.pi/2, 0.8),
-
-                         ("drive",
-                        SECOND_DRIVE_DISTANCE,
-                        FULL_VELOCITY)]
-
-    DRIVE_FORWARD_CMD = [("drive",
-                            CROSS_DRIVE_DISTANCE,
-                            FULL_VELOCITY)]
-
-    # ------------------- Obey Thresholds -------------------
-    CROSSROAD_OBEY_THRESHOLD = rospy.get_param("/crossroad_obey_threshold", 80)
-    SIGN_OBEY_THRESHOLD = rospy.get_param("/sign_obey_threshold", 800)
-    LIGHT_OBEY_THRESHOLD = rospy.get_param("/light_obey_threshold", 500)
 
     # ------------------- Timeouts -------------------
     STOP_TIME = 10
@@ -61,6 +25,43 @@ class Robot():
     LOGGING = True
 
     def __init__(self):
+
+        self.FULL_VELOCITY = rospy.get_param("/"+self.SYSTEM+"_linear_velocity", 0.5)
+
+        self.FIRST_DRIVE_DISTANCE = rospy.get_param("/first_drive_distance", 0.2)
+        self.SECOND_DRIVE_DISTANCE = rospy.get_param("/second_drive_distance", 0.3)
+        self.CROSS_DRIVE_DISTANCE = rospy.get_param("/cross_drive_distance", 0.5)
+
+        # ------------------- Commands -------------------
+        self.TURN_RIGHT_CMD = [("drive",
+                        self.FIRST_DRIVE_DISTANCE,
+                        self.FULL_VELOCITY),
+
+                            ("turn", -np.pi/2, 0.8),
+
+                            ("drive",
+                            self.SECOND_DRIVE_DISTANCE,
+                            self.FULL_VELOCITY)]
+
+
+        self.TURN_LEFT_CMD = [("drive",
+                            self.FIRST_DRIVE_DISTANCE,
+                            self.FULL_VELOCITY),
+
+                            ("turn", np.pi/2, 0.8),
+
+                            ("drive",
+                            self.SECOND_DRIVE_DISTANCE,
+                            self.FULL_VELOCITY)]
+
+        self.DRIVE_FORWARD_CMD = [("drive",
+                                self.CROSS_DRIVE_DISTANCE,
+                                self.FULL_VELOCITY)]
+
+        # ------------------- Obey Thresholds -------------------
+        self.CROSSROAD_OBEY_THRESHOLD = rospy.get_param("/crossroad_obey_threshold", 80)
+        self.SIGN_OBEY_THRESHOLD = rospy.get_param("/sign_obey_threshold", 800)
+        self.LIGHT_OBEY_THRESHOLD = rospy.get_param("/light_obey_threshold", 500)
 
         # YOLO started
         self.yolo_started = False
@@ -101,12 +102,14 @@ class Robot():
 
         self.setup_node()
 
+        raw_input("Press enter to start:")
+
         self.LOG("Running...")
 
         while not rospy.is_shutdown():
 
             if self.crossing:
-                self.LOG("Crossing")
+                self.LOG("Crossing "+self.action_sign.name)
                 self.cross_road()
 
             else:
@@ -201,6 +204,12 @@ class Robot():
             signs and lights.
         """
 
+        if (self.sign_is("right", min_area = 500)
+            or self.sign_is("left", min_area = 500)
+            or self.sign_is("forward", min_area = 500)):
+
+            self.action_sign = self.traffic_sign
+
         if self.light_is("red"):
             self.LOG("Stopped at red")
             return (0, 0)
@@ -246,12 +255,6 @@ class Robot():
                 self.LOG("Road work finished.")
             return (self.FULL_VELOCITY / 2, self.line_angular_vel)
 
-        if (self.sign_is("right", min_area = 500)
-            or self.sign_is("left", min_area = 500)
-            or self.sign_is("forward", min_area = 500)):
-
-            self.action_sign = self.traffic_sign
-
         return (self.FULL_VELOCITY, self.line_angular_vel)
 
 
@@ -282,9 +285,9 @@ class Robot():
         """
 
         if not self.turning:
-            self.LOG("Turning {} rads".format(angle))
             self.heading = 0
             self.turning = True
+            self.init_time = rospy.get_time()
 
         self.update_heading()
 
@@ -307,7 +310,7 @@ class Robot():
         """
 
         if self.LOGGING:
-            print("[MAIN] " + msg)
+            print("[MAIN] " + str(msg))
 
     def cleanup(self):
         """
@@ -343,10 +346,12 @@ class Robot():
 
         self.init_time = rospy.get_time()
 
-    def sign_is(self, sign, min_area = SIGN_OBEY_THRESHOLD):
+    def sign_is(self, sign, min_area = 0):
         """
             Checks if the current sign is the given sign and if it is big enough. Ensures that the same sign is not detected twice.
         """
+        if min_area == 0:
+            min_area = self.SIGN_OBEY_THRESHOLD
 
         is_sign = (self.traffic_sign.name == sign
                 and self.traffic_sign.area > min_area
@@ -355,10 +360,12 @@ class Robot():
             self.last_sign = self.traffic_sign
         return is_sign
 
-    def light_is(self, light, min_area = LIGHT_OBEY_THRESHOLD):
+    def light_is(self, light, min_area = 0):
         """
             Checks if the current light is the given light andif it is big enough
         """
+        if min_area == 0:
+            min_area = self.LIGHT_OBEY_THRESHOLD
 
         return self.traffic_light.name == light and self.traffic_light.area > min_area
 

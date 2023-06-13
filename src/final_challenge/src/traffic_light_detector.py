@@ -10,9 +10,12 @@ import numpy as np
 
 class TrafficLightDetector():
 
-    MIN_DETECTION_AREA = rospy.get_param("/light_detection_area", 700)
+
 
     def __init__(self):
+
+        self.MIN_DETECTION_AREA = rospy.get_param("/light_detection_area", 700)
+
         rospy.on_shutdown(self.cleanup)
 
         self.traffic_light_pub = rospy.Publisher(
@@ -26,8 +29,9 @@ class TrafficLightDetector():
 
         while not rospy.is_shutdown():
 
-            closest_light = "none"
-            min_area = 0
+            min_confidence = 0
+            best_area = 0
+            best_light = None
 
             if len(self.yolo_matrix):
 
@@ -35,20 +39,27 @@ class TrafficLightDetector():
 
                     width = light[2] - light[0]
                     height = light[3] - light[1]
+                    confidence = float(light[4])
 
                     # Ignore signs
                     if int(light[5]) < 6:
                         continue
 
+                    # Ignore unsure reds and yellows
+                    if int(light[5]) != 6 and confidence < 0.6:
+                        continue
+
+
                     category = categories[int(light[5] - 6)]
 
                     area = width * height
 
-                    if area > self.MIN_DETECTION_AREA and area > min_area:
-                        min_area = area
-                        closest_light = category
+                    if area > self.MIN_DETECTION_AREA and confidence > min_confidence:
+                        min_confidence = confidence
+                        best_light = category
+                        best_area = area
 
-            self.traffic_light_pub.publish(closest_light, min_area)
+            self.traffic_light_pub.publish(best_light, best_area)
 
             ros_rate.sleep()
 

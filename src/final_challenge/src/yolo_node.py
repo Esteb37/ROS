@@ -62,8 +62,9 @@ def distance(x1, y1, x2, y2):
 
 class Robot():
 
-    GHOST_FRAME_THRESHOLD = rospy.get_param("/ghost_frame_threshold", 3)
-    CONFIDENCE_THRESHOLD = rospy.get_param("/yolo_confidence_threshold", 0.5)
+    GHOST_FRAME_THRESHOLD = 3
+    SIGN_CONFIDENCE_THRESHOLD = 0.7
+    LIGHT_CONFIDENCE_THRESHOLD = 0.4
 
     WIDTH = 224
 
@@ -126,13 +127,19 @@ class Robot():
                     for d in det:
 
                         x1, y1, x2, y2, confidence, key = d
+                        key = int(key)
 
-                        if confidence < self.CONFIDENCE_THRESHOLD:
+                        if key < 5:
+                            threshold = self.SIGN_CONFIDENCE_THRESHOLD
+                        else:
+                            threshold = self.LIGHT_CONFIDENCE_THRESHOLD
+
+                        if confidence < threshold:
                             continue
 
                         center_x = (x1 + x2) / 2
                         center_y = (y1 + y2) / 2
-                        key = int(key)
+
 
                         unique = True
                         for i, obj in enumerate(self.tracked_objects[key]):
@@ -205,15 +212,15 @@ class Robot():
                     top_left = (int(d[0]), int(d[1]))
                     bottom_right = (int(d[2]), int(d[3]))
                     class_name = self.names[int(d[5])]
-                    confidence = d[4]
+                    confidence = round(float(d[4]),3)
 
                     area = abs(bottom_right[0]-top_left[0])*abs(bottom_right[1]-top_left[1])
 
                     color_hash = string_to_rgb_color(class_name)
 
                     cv2.rectangle(self.frame, top_left, bottom_right, color_hash, 2)
-                    cv2.putText(self.frame, class_name + " " + str(confidence), (top_left[0], top_left[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash, 2)
-                    cv2.putText(self.frame, str(area), (bottom_right[0], bottom_right[1]+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash, 2)
+                    cv2.putText(self.frame, class_name + " " + str(confidence), (top_left[0], top_left[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash, 1)
+                    cv2.putText(self.frame, str(area), (bottom_right[0], bottom_right[1]+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_hash, 1)
 
 
             self.image_pub.publish(image_to_msg(self.frame))
