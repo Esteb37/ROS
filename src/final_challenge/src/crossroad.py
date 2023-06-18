@@ -12,10 +12,14 @@ import numpy as np
 import itertools
 
 def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold = 0.1, intercept_threshold = 5):
+    """
+        Gets all the lines of length min_length or greater from the given coordinates using linear regression.
+    """
 
+    # Gets all combinations of coordinates of length min_length
     combinations = list(itertools.combinations(coordinates, min_length))
 
-    # linear regression of degree 1 for each combination
+    # Linear regression of degree 1 for each combination
     lines = []
     for combination in combinations:
         x = [c[0] for c in combination]
@@ -23,17 +27,17 @@ def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold 
         z = np.polyfit(x, y, 1)
 
 
-        # get the average error of the line
+        # Get the average error of the line
         error = 0
         for i in range(len(x)):
             error += abs(y[i] - (z[0] * x[i] + z[1]))
         error /= len(x)
 
-        # if the error is small enough, we consider it a line
+        # If the error is small enough, we consider it a line
         if error < line_threshold:
             lines.append((z[0], z[1]))
 
-    # average lines with similar slopes and intercepts
+    # Combine lines with similar slopes and intercepts
     groups = []
     for line in lines:
         slope = line[0]
@@ -48,7 +52,7 @@ def find_lines(coordinates, min_length = 4, line_threshold = 1, slope_threshold 
         if not found:
             groups.append([slope, intercept])
 
-    # get the coordinates of the lines
+    # Get the coordinates of the lines
     lines = []
     for group in groups:
         x1 = 0
@@ -159,12 +163,12 @@ class CrossroadDetector():
                         else:
                             centers.append((0, 0))
 
-
+                    # Find all lines of 4 or more centroids
                     groups = find_lines(centers, min_length=4, line_threshold=5, slope_threshold=10, intercept_threshold=10)
 
                     if len(groups):
 
-                        # get the lowest line
+                        # Get the lowest line
                         lowest = sorted(groups, key=lambda x: x[1], reverse=True)[0]
                         x1, y1, x2, y2, _, _ = lowest
                         cv2.line(thresh, (x1, y1), (x2, y2), (0, 0, 255), 4)

@@ -31,25 +31,29 @@ class SignDetector():
             closest_sign = "none"
             min_area = 0
 
+            # Get the YOLO results
             if len(self.yolo_matrix):
 
+                # For each object
                 for sign in self.yolo_matrix:
 
-                    width = sign[2] - sign[0]
-                    height = sign[3] - sign[1]
-
-                    # Ignore traffic lights
+                    # Ignore traffic light objects
                     if int(sign[5]) > 5:
                         continue
 
-                    category = categories[int(sign[5])]
-
+                    # Get dimensions
+                    width = sign[2] - sign[0]
+                    height = sign[3] - sign[1]
                     area = width * height
 
+                    category = categories[int(sign[5])]
+
+                    # If the sign is big enough and is the biggest, then it is the closest valid sign
                     if area > self.MIN_DETECTION_AREA and area > min_area:
                         min_area = area
                         closest_sign = category
 
+            # Send closest valid sign
             self.sign_pub.publish(closest_sign, min_area)
 
             ros_rate.sleep()
